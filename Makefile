@@ -11,7 +11,7 @@ else
 	WAR_FILE=./target/scala-2.10/spirit-news_2.10-$(VERSION).war
 endif
 
-JETTY_DIR=	/usr/share/jetty/
+JETTY_DIR=	/opt/jetty/
 SBT_CMD=	java -jar sbt-launch-0.12.4.jar
 
 all: build install jetty-restart
@@ -49,7 +49,7 @@ ifeq ($(HOSTNAME),$(PROD_HOST))
 	@echo "==> Press enter or Ctrl-C to abort"
 	@read input
 endif
-	@echo "==> Copying war file to /usr/share/jetty/webapps/"
+	@echo "==> Copying war file to /opt/jetty/webapps/"
 ifeq ($(HOSTNAME),$(PROD_HOST))
 	cp $(WAR_FILE) $(JETTY_DIR)/webapps/root.war
 endif
@@ -90,8 +90,10 @@ endif
 
 jetty-restart:
 	@echo "==> Restarting jetty"
-	/etc/init.d/jetty stop
-	/etc/init.d/jetty start
+#	/etc/init.d/jetty stop
+#	/etc/init.d/jetty start
+	systemctl stop jetty
+	systemctl start jetty
 ifeq ($(HOSTNAME),$(PROD_HOST))
 	@echo "http://spirit.fh-schmalkalden.de/"
 	@echo "new version of news deployed on spirit" | \
