@@ -45,7 +45,7 @@ object Entry extends Entry with MongoMetaRecord[Entry] {
 
 }
 
-class Entry extends MongoRecord[Entry] with ObjectIdPk[Entry] {
+class Entry extends MongoRecord[Entry] with ObjectIdPk[Entry] with Ordered[Entry] {
   def meta = Entry
   object name extends StringField(this, 100)
   object subject extends StringField(this, 100)
@@ -56,4 +56,7 @@ class Entry extends MongoRecord[Entry] with ObjectIdPk[Entry] {
   object nr extends StringField(this, 4)
   object news extends StringField(this, 1000)
 
+  override def compare(that: Entry): Int = {
+    this.nr.value.toInt.compareTo(that.nr.value.toInt)
+  }
 }

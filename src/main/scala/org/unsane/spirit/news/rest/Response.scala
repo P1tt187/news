@@ -35,9 +35,7 @@ package rest
 
 import model._
 
-import net.liftweb.http._
 import net.liftweb.http.rest._
-import net.liftmodules.textile._
 
 import net.liftweb.json.JsonDSL._
 import net.liftweb.common.Box
@@ -125,7 +123,7 @@ object Response extends Loggable with Config with RestHelper {
     if (params.isEmpty) {
       logger info "entry"
       JArray(Entry.findAll.sortWith(
-        (entry1, entry2) => entry1.nr.value > entry2.nr.value ).map(_.asJValue))
+        (entry1, entry2) => entry1 > entry2).map(_.asJValue))
     }
     else {
       var news = Entry.findAll.sortWith((entry1,entry2) => entry1.nr.value > entry2.nr.value )

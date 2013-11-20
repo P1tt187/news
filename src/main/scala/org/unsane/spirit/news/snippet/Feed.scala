@@ -72,15 +72,31 @@ object Feed extends RestHelper with SpiritHelpers {
 			 </image>
 			 <ttl>60</ttl>
 			 { news.map { entry =>
-			   (<item>
-				  <title>{ entry.subject.value } ({ semesterChanger(entry.semester.value) })</title>
-				  <author>{ entry.writer.value }</author>
-					<description>{ TextileParser.toHtml(entry.news.value).toString }</description>
-					<link>{ url}/entry/{entry.nr.value }</link>
-					<guid isPermaLink="false">{ entry.nr.value }</guid>
-					<pubDate>{ entry.date.value }</pubDate>
-				  </item>)
-			}}
+         <item>
+           <title>
+             {entry.subject.value}
+             (
+             {semesterChanger(entry.semester.value)}
+             )</title>
+           <author>
+             {entry.writer.value}
+           </author>
+           <description>
+             {TextileParser.toHtml(entry.news.value).toString}
+           </description>
+           <link>
+             {url}
+             /entry/
+             {entry.nr.value}
+           </link>
+           <guid isPermaLink="false">
+             {entry.nr.value}
+           </guid>
+           <pubDate>
+             {entry.date.value}
+           </pubDate>
+         </item>
+       }}
 			</channel>
 		</rss>
 	}
