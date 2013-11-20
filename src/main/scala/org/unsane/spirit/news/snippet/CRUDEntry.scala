@@ -35,10 +35,8 @@ package snippet
 
 import scala.xml._
 import net.liftweb.util.Helpers._
-import net.liftweb.http.{ S }
 import net.liftweb.http.SHtml._
 import net.liftweb.http._
-import js.JsCmds._
 import net.liftweb.common._
 import net.liftmodules.textile._
 import java.text._
@@ -46,7 +44,6 @@ import java.util.Date
 import java.util.Locale
 import net.liftweb.json.JsonDSL._
 import model._
-import net.liftweb.util.Props
 import scala.concurrent.stm._
 
 class CRUDEntry extends Loggable with SpiritHelpers with Config with EntryPreview {
@@ -163,7 +160,7 @@ class CRUDEntry extends Loggable with SpiritHelpers with Config with EntryPrevie
 
     CrudEntry.date.set(date)
     CrudEntry.semester.set(changedSemester)
-    CrudEntry.name.set(User.currentUserId.openOr("Oops!"))
+    //CrudEntry.name.set(User.currentUserId.openOr("Oops!"))
     CrudEntry.nr.set(newNr)
     CrudEntry.save(true)
 

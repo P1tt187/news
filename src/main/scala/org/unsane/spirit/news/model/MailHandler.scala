@@ -65,10 +65,10 @@ object MailHandler extends Loggable {
     logger info User.currentUserId.openOr("") + " is using the email function!"
 
     val props = new Properties
-    props.setProperty("mail.transport.protocol", "smtp")
-    props.setProperty("mail.host", "smtp.fh-schmalkalden.de")
+    props.put("mail.transport.protocol", "smtp")
+    props.put("mail.host", "smtp.fh-schmalkalden.de")
 
-    val mailSession = Session.getDefaultInstance(props, null)
+    val mailSession = Session getDefaultInstance(props, null)
     val transport = mailSession.getTransport
 
     val msg = new MimeMessage(mailSession)
@@ -84,19 +84,31 @@ object MailHandler extends Loggable {
     msg.addRecipient(Message.RecipientType.CC,
       new InternetAddress(S.getSessionAttribute("email").openOr("")))
 
-    msg.setFrom(new InternetAddress(S.getSessionAttribute("email").openOr("").toString,
-                 S.getSessionAttribute("fullname").openOr("").toString))
+    msg.setFrom(new InternetAddress(S.getSessionAttribute("email").openOr(""),
+      S.getSessionAttribute("fullname").openOr("")))
 
     try {
       transport.connect
       transport.sendMessage(msg, msg.getRecipients(Message.RecipientType.TO))
       transport.sendMessage(msg, msg.getRecipients(Message.RecipientType.CC))
       transport.close
+
+      /*
+      Transport.send(msg,msg.getRecipients(Message.RecipientType.TO))
+      Transport.send(msg,msg.getRecipients(Message.RecipientType.CC))
+*/
+
       logger info "Mail was sent successfully!"
       S notice "eMail wurde gesendet!"
     } catch {
-      case e =>
+      case e: SendFailedException =>
+        logger warn e.getInvalidAddresses
         logger warn "Mail was not sent correctly!"
+        logger warn e.printStackTrace.toString
+        S error "eMail konnte nicht versendet werden! "
+
+      case e: Exception =>
+      logger warn "Mail was not sent correctly!"
         logger warn e.printStackTrace.toString
         S error "eMail konnte nicht versendet werden! "
     }
