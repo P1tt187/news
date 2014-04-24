@@ -122,8 +122,7 @@ object Response extends Loggable with Config with RestHelper {
 
     if (params.isEmpty) {
       logger info "entry"
-      JArray(Entry.findAll.sortWith(
-        (entry1, entry2) => entry1 > entry2).map(_.asJValue))
+      JArray(Entry.findAll.sortWith((entry1,entry2) => entry1.nr.value > entry2.nr.value ).map(_.asJValue))
     }
     else {
       var news = Entry.findAll.sortWith((entry1,entry2) => entry1.nr.value > entry2.nr.value )
