@@ -41,7 +41,7 @@ import net.liftweb.common.Loggable
 import scala.collection.JavaConversions._
 
 trait LDAPAuth extends Loggable with Config {
-  private val useLDAPAuth = (loadProps("Productive") == "yes" || loadProps("UseLDAPAuth") == "yes")
+  private val useLDAPAuth = loadProps("Productive") == "yes" || loadProps("UseLDAPAuth") == "yes"
   private val env = new Hashtable[String,String]
 
   def tryLogin(userName: String, passWord: String): Boolean = {

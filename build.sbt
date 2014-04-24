@@ -1,6 +1,6 @@
 import com.typesafe.sbt.SbtStartScript 
 
-import com.earldouglas.xsbtwebplugin.PluginKeys
+//import com.earldouglas.xsbtwebplugin.WebPlugin
 
 name := "SPIRIT-News"
 
@@ -53,6 +53,8 @@ libraryDependencies ++= {
     "org.scala-stm" %% "scala-stm" % "0.7"
     )
 }
+
+    //lazy val root = (project in file(".")).addPlugins(SbtWeb)
 
     buildInfoSettings
 

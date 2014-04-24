@@ -1,15 +1,27 @@
-addSbtPlugin("com.earldouglas" % "xsbt-web-plugin" % "0.4.2")
+addSbtPlugin("com.earldouglas" % "xsbt-web-plugin" % "0.9.0")
 
-resolvers += "Sonatype snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
+// Comment to get more information during initialization
+logLevel := Level.Warn
 
-resolvers += Resolver.url("sbt-plugin-snapshots", new URL("http://scalasbt.artifactoryonline.com/scalasbt/sbt-plugin-snapshots"))(Resolver.ivyStylePatterns)
+lazy val root = Project("plugins", file(".")).dependsOn(plugin)
 
-addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.3.0-SNAPSHOT")
+lazy val plugin = file("../").getCanonicalFile.toURI
 
-addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.1.0")
+resolvers ++= Seq(
+  Resolver.mavenLocal,
+  Resolver.url("sbt snapshot plugins", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots"))(Resolver.ivyStylePatterns),
+  Resolver.sonatypeRepo("snapshots"),
+  "Typesafe Snapshots Repository" at "http://repo.typesafe.com/typesafe/snapshots/",
+  "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
+)
 
-addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.1.0-SNAPSHOT")
+addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.6.0")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-start-script" % "0.6.0")
+addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.4.0")
 
-addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.2.5")
+addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.1.5")
+
+addSbtPlugin("com.typesafe.sbt" % "sbt-start-script" % "0.10.0")
+
+addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.3.1")
+
