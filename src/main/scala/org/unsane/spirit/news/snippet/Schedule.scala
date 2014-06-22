@@ -1,12 +1,13 @@
 package org.unsane.spirit.news
 package snippet
 
-import net.liftweb.util.Helpers._
-import org.unsane.spirit.news.model.{ Config, ScheduleRecord}
-import xml.NodeSeq
-import net.liftweb.http.js.{JE, JsExp}
-import net.liftweb.http.{SessionVar, SHtml, S}
 import net.liftweb.common.Full
+import net.liftweb.http.js.{JE, JsExp}
+import net.liftweb.http.{S, SHtml, SessionVar}
+import net.liftweb.util.Helpers._
+import org.unsane.spirit.news.model.{Config, ScheduleRecord}
+
+import scala.xml.NodeSeq
 
 /**
  * Rendering the Schedule for a given classname and week.
@@ -22,6 +23,7 @@ class Schedule extends Config {
   }
 
   private object weekTypeVar extends SessionVar[String]("")
+
   private object classNameVar extends SessionVar[String](S.param("classname").openOr(""))
 
   sealed abstract case class period(time: String, schedule: List[ScheduleRecord]) {
@@ -64,15 +66,18 @@ class Schedule extends Config {
       case even if (even % 2 == 0) => "g"
       case odd if (odd % 2 != 0) => "u"
       case _ => "w"
-    })}
+    })
+  }
 
   val classSchedule = ScheduleRecord.findAll.filter { x =>
-    x.className.value.toLowerCase == classNameVar.get}.filterNot { x =>
-      x.appointment.get.week.toLowerCase == (weekTypeVar.get match {
-        case "g" => "u"
-        case "u" => "g"
-        case _ => "m"
-  })}
+    x.className.value.toLowerCase == classNameVar.get
+  }.filterNot { x =>
+    x.appointment.get.week.toLowerCase == (weekTypeVar.get match {
+      case "g" => "u"
+      case "u" => "g"
+      case _ => "m"
+    })
+  }
 
   /**
    * Each object represents a given period from Monday - Friday.
@@ -81,12 +86,19 @@ class Schedule extends Config {
    * necessary to only have seven objects here.
    */
   object one extends period("08.15-09.45", classSchedule)
+
   object two extends period("10.00-11.30", classSchedule)
+
   object three extends period("11.45-13.15", classSchedule)
+
   object four extends period("14.15-15.45", classSchedule)
+
   object five extends period("16.00-17.30", classSchedule)
+
   object six extends period("17.45-19.15", classSchedule)
+
   object seven extends period("19.30-21.00", classSchedule)
+
   object eight extends period("21.15-22.45", classSchedule)
 
   private val periodList = List(one, two, three, four, five, six, seven, eight)
@@ -109,15 +121,21 @@ class Schedule extends Config {
         case "uebung" => "tutorial"
         case _ => "lecture"
       }
-      
+
       <div class={"event " + cycle}>
-       <span class={"eventTitle "}>{x.titleShort.get}</span><div class={icon}></div>
-       <div style="clear:both"></div>
-       {(if (x.group.value.replaceAll("""\u00A0""", "") == "") ""
-           else <div>{"Gruppe: " + x.group.value.replaceAll("""\u00A0""", "")}</div>)}
-       <div style="float:left">{x.appointment.get.location.place.building + ":" + x.appointment.get.location.place.room}</div>
-       <div style="float:right">{x.member.get.map(_.name.replaceAll("_","")).mkString(" ")}</div>
-       <div style="clear:both"></div>
+        <span class={"eventTitle "}>
+          {x.titleShort.get}
+        </span> <div class={icon}></div>
+        <div style="clear:both"></div>{(if (x.group.value.replaceAll( """\u00A0""", "") == "") ""
+      else <div>
+        {"Gruppe: " + x.group.value.replaceAll( """\u00A0""", "")}
+      </div>)}<div style="float:left">
+        {x.appointment.get.location.place.building + ":" + x.appointment.get.location.place.room}
+      </div>
+        <div style="float:right">
+          {x.member.get.map(_.name.replaceAll("_", "")).mkString(" ")}
+        </div>
+        <div style="clear:both"></div>
       </div>
     }
   }
@@ -125,22 +143,26 @@ class Schedule extends Config {
   def selectClassnameBox = {
 
     val (_, js) = SHtml.ajaxCall(JE.JsRaw("this.value"),
-                                     s => { classNameVar(s)
-                                            S.redirectTo("/schedule?classname=" + s)}): (String, JsExp) 
-                                            
-                                            
+      s => {
+        classNameVar(s)
+        S.redirectTo("/schedule?classname=" + s)
+      }): (String, JsExp)
 
-    SHtml.select(allClassNamesAsLowercase.map(x => (x,x)), Full(classNameVar.get),
-                 x => x, "onchange" -> js.toJsCmd)
+
+
+    SHtml.select(allClassNamesAsLowercase.map(x => (x, x)), Full(classNameVar.get),
+      x => x, "onchange" -> js.toJsCmd)
   }
 
   def selectWeekBox = {
 
     val (_, js) = SHtml.ajaxCall(JE.JsRaw("this.value"),
-                                     s => { weekTypeVar(s)
-                                            S.redirectTo("/schedule")}): (String, JsExp) 
+      s => {
+        weekTypeVar(s)
+        S.redirectTo("/schedule")
+      }): (String, JsExp)
 
-    SHtml.select(Seq(("g", "Gerade"),("u", "Ungerade"),("w", "Alles")),
+    SHtml.select(Seq(("g", "Gerade"), ("u", "Ungerade"), ("w", "Alles")),
       (weekTypeVar.get match {
         case "u" => Full("u")
         case "g" => Full("g")
@@ -154,7 +176,7 @@ class Schedule extends Config {
    *
    * @param period Which period line shall be rendered.
    * @param renderMe If the given period shall be rendered.
-   * If any higher period is rendered. This period will be rendered, too.
+   *                 If any higher period is rendered. This period will be rendered, too.
    * @return NodeSeq The rendered period as HTML or an empty DIV.
    *
    */
@@ -164,33 +186,105 @@ class Schedule extends Config {
 
     case (_, _) =>
       <tr>
-        <td class="first">{ in.time }</td>
-        <td>{ mkPrettyEvent(in.Monday) }</td>
-        <td>{ mkPrettyEvent(in.Tuesday) }</td>
-        <td>{ mkPrettyEvent(in.Wednesday) }</td>
-        <td>{ mkPrettyEvent(in.Thursday) }</td>
-        <td>{ mkPrettyEvent(in.Friday) }</td>
+        <td class="first">
+          {in.time}
+        </td>
+        <td>
+          {mkPrettyEvent(in.Monday)}
+        </td>
+        <td>
+          {mkPrettyEvent(in.Tuesday)}
+        </td>
+        <td>
+          {mkPrettyEvent(in.Wednesday)}
+        </td>
+        <td>
+          {mkPrettyEvent(in.Thursday)}
+        </td>
+        <td>
+          {mkPrettyEvent(in.Friday)}
+        </td>
       </tr>
   }
 
   def render = {
     <table>
-      <caption>Stundenplan f&uuml;r das Semester: { classNameVar.get } </caption>
-	  <thead>
-    <tr>
-      <th>Uhrzeit</th>
-      <th>Montag</th>
-      <th>Dienstag</th>
-      <th>Mittwoch</th>
-      <th>Donnerstag</th>
-      <th>Freitag</th>
-    </tr>
-	  </thead>
-	  <tbody> {
-      periodList map { current =>
+      <caption>Stundenplan für das Semester:
+        {classNameVar.get}
+      </caption>
+      <thead>
+        <tr>
+          <th>Uhrzeit</th>
+          <th>Montag</th>
+          <th>Dienstag</th>
+          <th>Mittwoch</th>
+          <th>Donnerstag</th>
+          <th>Freitag</th>
+        </tr>
+      </thead>
+      <tbody>
+        {periodList map { current =>
         renderPeriod(current, (current.hasCourses, periodList.dropWhile(_ != current).tail.map(_.hasCourses) contains true))
       }}
-    </tbody>
+      </tbody>
     </table>
+  }
+
+  /** this method generates altenativ rooms table if needed */
+  def alternativRoomsTable: NodeSeq = {
+    if (classSchedule.find(_.appointment.get.location.alternative.nonEmpty).isEmpty) {
+      <div></div>
+    } else {
+      val alternativRooms = classSchedule.filter(_.appointment.get.location.alternative.nonEmpty).flatMap {
+        element =>
+          element.appointment.get.location.alternative
+      }
+
+      val tableContent = alternativRooms.map {
+        element =>
+          <tr>
+            <td>
+              {element.alterDay}
+            </td>
+            <td>
+              {element.alterTitleShort}
+            </td>
+            <td>
+              {element.alterLocation.building + " " + element.alterLocation.room}
+            </td>
+            <td>
+              {element.alterWeek match {
+              case "w" => "Wöchentlich"
+              case "g" => "gerade"
+              case "ug" => "ungerade"
+              case _ => "error"
+            }}
+            </td>
+          </tr>
+      }
+
+      <table>
+        <caption>Alternativräume</caption>
+
+        <tr>
+          <th>
+            Wochentag
+          </th>
+          <th>
+            Veranstaltung
+          </th>
+          <th>
+            Gebäude
+          </th>
+          <th>
+            Art der Woche
+          </th>
+        </tr>
+
+        <tbody>
+          {tableContent}
+        </tbody>
+      </table>
+    }
   }
 }
