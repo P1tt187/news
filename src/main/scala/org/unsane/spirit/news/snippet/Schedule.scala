@@ -274,7 +274,7 @@ class Schedule extends Config {
             Veranstaltung
           </th>
           <th>
-            Gebäude
+            Raum
           </th>
           <th>
             Art der Woche
