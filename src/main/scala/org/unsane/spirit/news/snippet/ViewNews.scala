@@ -99,7 +99,6 @@ class ViewNews extends SpiritHelpers with Loggable with Config {
   }
 
   def render = {
-
    ".entry" #> news.map( entry =>
      ".writer"    #> entry.writer.value.toString &
      ".subject"   #> <a href={"/entry/"+entry.nr.value.toString}>

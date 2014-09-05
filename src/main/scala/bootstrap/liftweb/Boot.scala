@@ -178,8 +178,8 @@ class Boot extends Loggable with Config {
       Menu(Loc("StundenplanDispatch", List("scheduleDispatch"), "Stundenplan")) ::
       schedule ::
     Menu(Loc("mobil",Link(List("mobilewebapp"),true,"/mobilewebapp/index"),"Mobil"))::
-      Menu(Loc("Verfassen", List("writenews"), "Verfassen", loggedIn)) ::
-      Menu(Loc("editieren", Link(List("edit"), true, "/edit/editieren"), "Editieren", loggedIn)) ::
+      Menu(Loc("Verfassen", List("writenews"), "Verfassen", Hidden)) ::
+      Menu(Loc("editieren", Link(List("edit"), true, "/edit/editieren"), "Editieren", Hidden)) ::
       Menu(Loc("ScheduleMgt", List("scheduleAdmin", "index"), "Std. Plan Verwaltung", adminLoggedIn)) ::
       Menu(Loc("schedule", List("schedule"), "schedule", Hidden),
         Menu(Loc("GroupsNew", List("schedule", "groups"), "Gruppen")),
