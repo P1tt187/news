@@ -43,7 +43,7 @@ import net.liftweb.common.Loggable
 import twitter4j._
 import auth.AccessToken
 
-/* This is one cool feature!
+/** This is one cool feature!
  * Spreader takes the Entry number, gets a TinyURL for this.
  * And it will be TWittered instantly.
  * If Twitter is down or not reachable, the Actor will throw the exception!

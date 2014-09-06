@@ -8,11 +8,13 @@ version := "1.2.1"
 
 organization := "SPIRIT"
 
-scalaVersion := "2.10.2"
+//scalaVersion := "2.10.2"
 
 resolvers ++= Seq("snapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
                 "releases" at "http://oss.sonatype.org/content/repositories/releases"
                 )
+
+
 
 seq(webSettings :_*)
 
@@ -20,7 +22,10 @@ seq(SbtStartScript.startScriptForClassesSettings: _*)
 
 // net.virtualvoid.sbt.graph.Plugin.graphSettings // for sbt dependency-graph plugin
 
-scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature","-language:implicitConversions","-language:postfixOps")
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature","-language:implicitConversions","-language:postfixOps"
+)
+
+javacOptions ++= Seq("-Djsse.enableSNIExtension=false")
 
 libraryDependencies ++= {
   val liftVersion = "2.5"
