@@ -117,7 +117,7 @@ class ViewNews extends SpiritHelpers with Loggable with Config {
 
   def mkXMLHeader(value:String)={
 
-    PCDataXmlParser("<div>" + value +"</div>") openOr Text("Failed to parse str")
+    PCDataXmlParser(new StringBuilder( "<div>").append(value).append("</div>").toString ) openOr Text("Failed to parse str")
 
   }
 
