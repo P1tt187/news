@@ -15,8 +15,11 @@ import org.unsane.spirit.news.snippet.CRUDEntry
 import scala.actors.Actor
 
 /**
- * Created by fabian
+ * @author fabian
  *         on 06.09.14.
+ *
+ *  the actor will contact the rss feed every minute
+ *  if there are new entrys it will create new entrys for every new item and leave the existing as they are
  */
 class RSSImportActor extends Actor with Loggable {
 
