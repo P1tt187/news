@@ -50,7 +50,13 @@ class RSSImportActor extends Actor with Loggable {
   def parseFeed = {
     val feed = FeedParser.parse(FEED_URL)
 
-    val items = (0 to feed.getItemCount - 1).par.map {
+    val maxResults = if(feed.getItemCount>50){
+      50
+    } else {
+      feed.getItemCount
+    }
+
+    val items = (0 to maxResults - 1).par.map {
       index =>
         feed.getItem(index)
     }.seq.sortBy( item=> df.parse(item.getElementValue("", "pubDate")))
