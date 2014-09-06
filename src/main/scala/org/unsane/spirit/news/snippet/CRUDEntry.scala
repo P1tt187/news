@@ -117,7 +117,9 @@ class CRUDEntry extends Loggable with SpiritHelpers with Config with EntryPrevie
   def create() {
     lazy val nr = if (EntryCounter.findAll.isEmpty) "0" else EntryCounter.findAll.head.counter.toString
 
-    CrudEntry.date.set(date)
+    if(CrudEntry.date.get.isEmpty) {
+      CrudEntry.date.set(date)
+    }
     CrudEntry.name.set(User.currentUserId.openOr("Oops!"))
     CrudEntry.semester.set(changedSemester)
     CrudEntry.nr.set(nr)
@@ -152,10 +154,12 @@ class CRUDEntry extends Loggable with SpiritHelpers with Config with EntryPrevie
    */
   def update() {
     val oldNr = CrudEntry.nr.value
+    logger debug "oldNr: "+oldNr
     val newNr =
-      if (tweetUpdate)
+      if (tweetUpdate) {
         if (EntryCounter.findAll.isEmpty) "1"
         else EntryCounter.findAll.head.counter.toString
+      }
       else oldNr
 
     CrudEntry.date.set(date)

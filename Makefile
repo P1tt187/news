@@ -3,7 +3,7 @@
 DEV_HOST=	ivlbrau3
 PROD_HOST=	ivlbrau4
 HOSTNAME=	$(shell hostname -s)
-VERSION=    1.2.1
+VERSION=    1.3.0
 
 ifeq ($(HOSTNAME),$(PROD_HOST))
 	WAR_FILE=root.war

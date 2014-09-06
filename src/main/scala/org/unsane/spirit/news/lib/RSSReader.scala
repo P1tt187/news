@@ -6,6 +6,7 @@ import java.util.{Calendar, Locale}
 
 import it.sauronsoftware.feed4j.FeedParser
 import net.liftweb.common.Loggable
+import net.liftweb.http.LiftRules
 import net.liftweb.util.Html5
 import org.unsane.spirit.news.model._
 
@@ -18,7 +19,11 @@ import org.unsane.spirit.news.model._
  */
 object RSSReader extends Loggable with Config {
   def run() = {
-    (new RSSImportActor).start()
+   val actor =  new RSSImportActor
+    actor.start()
+    actor ! Next
+
+    LiftRules.unloadHooks.append(()=>actor!Stop)
   }
 
 }
