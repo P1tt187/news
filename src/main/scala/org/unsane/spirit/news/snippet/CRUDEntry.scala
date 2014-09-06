@@ -65,7 +65,7 @@ class CRUDEntry extends Loggable with SpiritHelpers with Config with EntryPrevie
   /**
    * CrudEntry is either a new Entry or a an existing Entry to be Updated!
    */
-   val CrudEntry =
+   lazy val CrudEntry =
     atomic {
       implicit txn =>
         CurrentEntry.get match {
