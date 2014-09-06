@@ -101,7 +101,7 @@ class RSSImportActor extends Actor with Loggable {
 
       sb.toString().trim
     } else {
-      ""
+      "semester alte_semester"
     }
 
     CrudEntry.CrudEntry.semester.set(changedSemester)
