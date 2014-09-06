@@ -94,7 +94,7 @@ class ViewNews extends SpiritHelpers with Loggable with Config {
       "alle" :: allSemesterAsList4News zip  "Alle" :: allClassNamesAsLowercase
 
     val (name2, js) = SHtml.ajaxCall(JE.JsRaw("this.value"),
-                                     s => (S.redirectTo("/semsearch/" + s))): (String, JsExp)
+                                     s => S.redirectTo("/semsearch/" + s)): (String, JsExp)
 
     SHtml.select(classNames.toSeq, Full(S.param("search").openOr("Alle")), x => x, "onchange" -> js.toJsCmd)
 

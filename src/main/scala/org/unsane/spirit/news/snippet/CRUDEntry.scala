@@ -121,7 +121,9 @@ class CRUDEntry extends Loggable with SpiritHelpers with Config with EntryPrevie
       CrudEntry.date.set(date)
     }
     CrudEntry.name.set(User.currentUserId.openOr("Oops!"))
-    CrudEntry.semester.set(changedSemester)
+    if(CrudEntry.semester.get.isEmpty) {
+      CrudEntry.semester.set(changedSemester)
+    }
     CrudEntry.nr.set(nr)
     if (CrudEntry.subject.value.trim.isEmpty) {
       CrudEntry.subject.set((

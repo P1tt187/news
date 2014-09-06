@@ -18,7 +18,7 @@ class ScheduleParser {
     val scheduleType = sph.loadChangeableProps("schedule")
 
     val (name2, js) = SHtml.ajaxCall(JE.JsRaw("this.value"),
-                                     s => (sph.saveProps("schedule", s))): (String, JsExp)
+                                     s => sph.saveProps("schedule", s)): (String, JsExp)
 
     val classNames = "alle" :: sph.allClassNamesAsLowercase
 
