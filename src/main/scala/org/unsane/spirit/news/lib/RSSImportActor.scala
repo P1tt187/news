@@ -91,23 +91,24 @@ class RSSImportActor extends Actor with Loggable {
     CrudEntry.CrudEntry.date.set(date)
     CrudEntry.CrudEntry.name.set(user)
     val expireDate = Calendar.getInstance()
-    expireDate.add(Calendar.DAY_OF_YEAR,30);
+    expireDate.add(Calendar.DAY_OF_YEAR,30)
     CrudEntry.CrudEntry.lifecycle.set(lifecycleFormat.format( expireDate.getTime))
 
-    val changedSemester = if (subject.contains("(")) {
-      val parts = subject.substring(subject.indexOf("(") + 1, subject.indexOf(")")).trim.split(" ")
-      val sb = new StringBuilder
-      parts.foreach {
-        p =>
-          sb.append(allSemesterAsList4News.find(sem=> p.equalsIgnoreCase(sem)).getOrElse("")).append(" ")
-      }
+    val changedSemester = new StringBuilder
 
-      sb.toString().trim
-    } else {
-      "semester alte_semester"
+    val parts = subject.replaceAll("[():,.]"," ").trim.split(" ")
+
+    parts.foreach {
+      p =>
+        changedSemester.append(allSemesterAsList4News.find(sem=> p.equalsIgnoreCase(sem)).getOrElse("")).append(" ")
     }
 
-    CrudEntry.CrudEntry.semester.set(changedSemester)
+    if(changedSemester.toString.trim.isEmpty){
+      changedSemester append "semester alte_semester"
+    }
+
+
+    CrudEntry.CrudEntry.semester.set(changedSemester.toString.trim)
     CrudEntry.CrudEntry.writer.set(user)
     CrudEntry.CrudEntry.subject.set(subject)
     CrudEntry.CrudEntry.news.set(news)
