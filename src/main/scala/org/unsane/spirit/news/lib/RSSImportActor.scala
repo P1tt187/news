@@ -26,12 +26,11 @@ class RSSImportActor extends Actor with Loggable {
   val FEED_URL = new URL("https://studip.fh-schmalkalden.de/rss.php?id=a88776e9ec68c2990f6cbb5ff8609752")
   val DOM_URL = "http://purl.org/dc/elements/1.1/"
 
-  private lazy val dateFormat = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z")
   private lazy val df = new SimpleDateFormat("EEE', 'dd' 'MMM' 'yyyy' 'HH:mm:ss' 'Z", Locale.US)
   private lazy val lifecycleFormat = new SimpleDateFormat("dd.MM.yyyy")
 
 
-  def act: Unit = {
+  def act(): Unit = {
     loop {
 
       react {
@@ -50,7 +49,7 @@ class RSSImportActor extends Actor with Loggable {
 
   }
 
-  def parseFeed = {
+  def parseFeed() = {
     val feed = FeedParser.parse(FEED_URL)
 
     val maxResults = if(feed.getItemCount>50){
@@ -70,17 +69,11 @@ class RSSImportActor extends Actor with Loggable {
         val subject = item.getTitle
         val news = item.getDescriptionAsHTML//.replaceAll("<br />", "\n").replaceAll("<li>", "* ").replaceAll("</li>", "\n")
 
-
-        //val newsAsText = Html5.parse(news).get.text
-
-        //println(item.getElementValue(DOM_URL,"date"))
         val pubDateString = item.getElementValue("", "pubDate").split(",")(1)
-
-        val date = df.format(dateFormat.parse(pubDateString))
 
         if (Entry.findAll.find(_.news.get.trim.equalsIgnoreCase(news.trim)).isEmpty) {
           logger debug "insert new entry from rss"
-          createEntry(user, date, subject, news)
+          createEntry(user, pubDateString, subject, news)
         }
     }
   }
