@@ -36,6 +36,7 @@ package model
 import dispatch._
 import dispatch.classic._
 import oauth._
+import twitter4j.conf.ConfigurationBuilder
 import scala.actors._
 import Http._
 import net.liftweb.common.Loggable
@@ -53,9 +54,16 @@ case class Tweet(subject: String, semester: String, number: String, baseURL:Stri
 
 object Spreader extends Actor with Config with Loggable {
 
-  private val twitter = new TwitterFactory().getInstance()
-  twitter.setOAuthConsumer(loadProps("Consumer"), loadProps("ConsumerSecret"))
-  twitter.setOAuthAccessToken(new AccessToken(loadProps("Token"), loadProps("TokenSecret")))
+  private val confBuilder = new ConfigurationBuilder
+  confBuilder.setOAuthAccessToken(loadProps("Token"))
+  confBuilder.setOAuthAccessTokenSecret(loadProps("TokenSecret"))
+  confBuilder.setOAuthConsumerKey(loadProps("Consumer"))
+  confBuilder.setOAuthConsumerSecret(loadProps("ConsumerSecret"))
+  confBuilder.setUseSSL(true)
+
+  private val twitter = new TwitterFactory(confBuilder.build()).getInstance()
+
+
 
   private def mkTweet(subject: String, tinyurl: String,studipURL:String, semester: String) = {
     val tailWithoutSemester = " " + studipURL  + " " + tinyurl
