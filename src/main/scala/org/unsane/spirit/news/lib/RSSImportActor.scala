@@ -68,20 +68,22 @@ class RSSImportActor extends Actor with Loggable {
       item =>
         val user = item.getElementValue(DOM_URL, "contributor")
         val subject = item.getTitle
-        val news = item.getDescriptionAsHTML //.replaceAll("<br />", "\n").replaceAll("<li>", "* ").replaceAll("</li>", "\n")
+        val news = item.getDescriptionAsHTML.replaceAll("mailto:","") //.replaceAll("<br />", "\n").replaceAll("<li>", "* ").replaceAll("</li>", "\n")
 
         val pubDateString = item.getElementValue("", "pubDate").split(",")(1)
+        val baseURL = item.getLink.toString
 
         if (Entry.findAll.find(_.news.get.trim.equalsIgnoreCase(news.trim)).isEmpty) {
           logger debug "insert new entry from rss"
-          createEntry(user, pubDateString, subject, news)
+          createEntry(user, pubDateString, subject, news, baseURL)
         }
     }
   }
 
-  def createEntry(user: String, date: String, subject: String, news: String) = {
+  def createEntry(user: String, date: String, subject: String, news: String, baseURL:String) = {
     val CrudEntry = new CRUDEntry
 
+    CrudEntry.CrudEntry.baseUrl.set(baseURL)
     CrudEntry.CrudEntry.date.set(date)
     CrudEntry.CrudEntry.name.set(user)
     val expireDate = Calendar.getInstance()
@@ -90,14 +92,13 @@ class RSSImportActor extends Actor with Loggable {
 
     val changedSemester = new StringBuilder
 
-    val parts = subject.replaceAll("[():,.]", " ").trim.toUpperCase.split(" ") ++ news.replaceAll("[():,.]", " ").trim.toUpperCase.split(" ")
+    val parts = subject.replaceAll("[():,.-]", " ").trim.toUpperCase.split(" ") ++ news.replaceAll("[():,.]", " ").trim.toUpperCase.split(" ")
 
-    parts.toSet.foreach {
+    val theCourses = parts.toSet.flatMap {
       p: String =>
-        val theCourses = allSemesterAsList4News.filter(sem => p.equalsIgnoreCase(sem) || p.equalsIgnoreCase("BA" + sem))
-        changedSemester.append(theCourses.mkString(" "))
-
-    }
+        allSemesterAsList4News.filter(sem => p.equalsIgnoreCase(sem) || p.equalsIgnoreCase("BA" + sem))
+    }.toList.sorted
+    changedSemester.append(theCourses.mkString(" "))
     if (changedSemester.toString.trim.isEmpty) {
       changedSemester append "semester alte_semester"
     }

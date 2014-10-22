@@ -55,5 +55,5 @@ class Entry extends MongoRecord[Entry] with ObjectIdPk[Entry]  {
   object lifecycle extends StringField(this, 100)
   object nr extends StringField(this, 4)
   object news extends StringField(this, 1000)
-
+  object baseUrl extends StringField(this,100)
 }

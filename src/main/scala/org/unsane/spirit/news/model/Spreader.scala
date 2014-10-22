@@ -49,7 +49,7 @@ import auth.AccessToken
  * If Twitter is down or not reachable, the Actor will throw the exception!
  */
 
-case class Tweet(subject: String, semester: String, number: String)
+case class Tweet(subject: String, semester: String, number: String, baseURL:String = "")
 
 object Spreader extends Actor with Config with Loggable {
 
@@ -57,8 +57,8 @@ object Spreader extends Actor with Config with Loggable {
   twitter.setOAuthConsumer(loadProps("Consumer"), loadProps("ConsumerSecret"))
   twitter.setOAuthAccessToken(new AccessToken(loadProps("Token"), loadProps("TokenSecret")))
 
-  private def mkTweet(subject: String, tinyurl: String, semester: String) = {
-    val tailWithoutSemester = " " + tinyurl
+  private def mkTweet(subject: String, tinyurl: String,studipURL:String, semester: String) = {
+    val tailWithoutSemester = " " + studipURL  + " " + tinyurl
     val tailSemester = tailWithoutSemester + " " + semester
     val tail =
       if (tailSemester.length > 130) tailWithoutSemester
@@ -73,12 +73,13 @@ object Spreader extends Actor with Config with Loggable {
   def act {
     loop {
       react {
-        case Tweet(subject,semester,nr) =>
+        case Tweet(subject,semester,nr, baseURL) =>
           try {
             val http = new Http
             val longUrl = url("http://is.gd/api.php?longurl=http://spirit.fh-schmalkalden.de/entry/" + nr)
             val tinyurl = http(longUrl as_str)
-            twitter.updateStatus(mkTweet(subject, tinyurl, semester))
+            val stuipUrl = http(url("http://is.gd/api.php?longurl="+baseURL) as_str)
+            twitter.updateStatus(mkTweet(subject, tinyurl,stuipUrl, semester))
           } catch {
             case e:Throwable =>
               logger error e.toString
