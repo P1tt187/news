@@ -59,7 +59,7 @@ object Spreader extends Actor with Config with Loggable {
   confBuilder.setOAuthAccessTokenSecret(loadProps("TokenSecret"))
   confBuilder.setOAuthConsumerKey(loadProps("Consumer"))
   confBuilder.setOAuthConsumerSecret(loadProps("ConsumerSecret"))
-  confBuilder.setUseSSL(true)
+
 
   private val twitter = new TwitterFactory(confBuilder.build()).getInstance()
 
@@ -87,7 +87,9 @@ object Spreader extends Actor with Config with Loggable {
             val longUrl = url("http://is.gd/api.php?longurl=http://spirit.fh-schmalkalden.de/entry/" + nr)
             val tinyurl = http(longUrl as_str)
             val stuipUrl = http(url("http://is.gd/api.php?longurl="+baseURL) as_str)
-            twitter.updateStatus(mkTweet(subject, tinyurl,stuipUrl, semester))
+            val theTweet=mkTweet(subject, tinyurl,stuipUrl, semester)
+            logger debug theTweet
+            twitter.updateStatus(theTweet)
           } catch {
             case e:Throwable =>
               logger error e.toString

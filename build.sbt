@@ -29,7 +29,7 @@ javacOptions ++= Seq("-Djsse.enableSNIExtension=false")
 
 libraryDependencies ++= {
   val liftVersion = "2.5"
-  val twitter4jVersion="3.0.3"
+  val twitter4jVersion="4.0.2"
   val dispatchVersion="0.8.10"
   Seq(
    "net.tanesha.recaptcha4j" % "recaptcha4j" % "0.0.7",
