@@ -8,7 +8,7 @@ version := "1.3.0"
 
 organization := "SPIRIT"
 
-scalaVersion := "2.10.2"
+//scalaVersion := "2.11.1"
 
 resolvers ++= Seq("snapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
                 "releases" at "http://oss.sonatype.org/content/repositories/releases"
