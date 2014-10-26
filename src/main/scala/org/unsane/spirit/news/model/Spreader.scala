@@ -40,6 +40,7 @@ import twitter4j.conf.ConfigurationBuilder
 import scala.actors._
 import Http._
 import net.liftweb.common.Loggable
+import net.liftweb.http.S
 
 import twitter4j._
 import auth.AccessToken
@@ -63,10 +64,8 @@ object Spreader extends Actor with Config with Loggable {
 
   private val twitter = new TwitterFactory(confBuilder.build()).getInstance()
 
-
-
-  private def mkTweet(subject: String, tinyurl: String,studipURL:String, semester: String) = {
-    val tailWithoutSemester = " " + studipURL  + " " + tinyurl
+  private def mkTweet(subject: String, tinyurl: String, semester: String) = {
+    val tailWithoutSemester = " " + tinyurl
     val tailSemester = tailWithoutSemester + " " + semester
     val tail =
       if (tailSemester.length > 130) tailWithoutSemester
@@ -84,10 +83,10 @@ object Spreader extends Actor with Config with Loggable {
         case Tweet(subject,semester,nr, baseURL) =>
           try {
             val http = new Http
-            val longUrl = url("http://is.gd/api.php?longurl=http://spirit.fh-schmalkalden.de/entry/" + nr)
-            val tinyurl = http(longUrl as_str)
+            //val longUrl = url("http://is.gd/api.php?longurl=http://spirit.fh-schmalkalden.de/entry/" + nr)
+            //val tinyurl = http(longUrl as_str)
             val stuipUrl = http(url("http://is.gd/api.php?longurl="+baseURL) as_str)
-            val theTweet=mkTweet(subject, tinyurl,stuipUrl, semester)
+            val theTweet=mkTweet(subject, stuipUrl, semester)
             logger debug theTweet
             twitter.updateStatus(theTweet)
           } catch {

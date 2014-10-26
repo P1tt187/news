@@ -146,7 +146,7 @@ class CRUDEntry extends Loggable with SpiritHelpers with Config with EntryPrevie
     }
     if (tweet) {
       logger info "News should be spread via Twitter!"
-      Spreader ! Tweet(CrudEntry.subject.value, changedSemester.split(" ").map(" #" + _).mkString, nr, CrudEntry.baseUrl.value)
+      Spreader ! Tweet(CrudEntry.subject.value, CrudEntry.semester.value.trim.split(" ").map(" #" + _).mkString, nr, CrudEntry.baseUrl.value)
     }
   }
 
