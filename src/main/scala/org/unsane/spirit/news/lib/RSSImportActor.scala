@@ -1,12 +1,13 @@
 package org.unsane.spirit.news.lib
 
-import java.net.URL
+import java.net.{URLEncoder, URL}
 import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
 import java.util.{Calendar, Locale}
 
 import it.sauronsoftware.feed4j.FeedParser
 import net.liftweb.common.Loggable
+import net.liftweb.util.HttpHelpers
 import org.unsane.spirit.news.lib.RSSReader._
 import org.unsane.spirit.news.model.Entry
 import org.unsane.spirit.news.snippet.CRUDEntry
@@ -20,7 +21,7 @@ import scala.actors.Actor
  *         the actor will contact the rss feed every minute
  *         if there are new entrys it will create new entrys for every new item and leave the existing as they are
  */
-class RSSImportActor extends Actor with Loggable {
+class RSSImportActor extends Actor  with Loggable {
 
   val FEED_URL = new URL("https://studip.fh-schmalkalden.de/rss.php?id=a88776e9ec68c2990f6cbb5ff8609752")
   val DOM_URL = "http://purl.org/dc/elements/1.1/"
@@ -36,7 +37,7 @@ class RSSImportActor extends Actor with Loggable {
         case Next =>
           logger debug "try to import rss entrys"
 
-          parseFeed
+          parseFeed()
 
           Thread.sleep(TimeUnit.MINUTES.toMillis(1))
           this ! Next
@@ -83,7 +84,8 @@ class RSSImportActor extends Actor with Loggable {
   def createEntry(user: String, date: String, subject: String, news: String, baseURL:String) = {
     val CrudEntry = new CRUDEntry
 
-    CrudEntry.CrudEntry.baseUrl.set(baseURL)
+    CrudEntry.CrudEntry.baseUrl.set(URLEncoder.encode(baseURL,"UTF-8") )
+    //logger debug CrudEntry.CrudEntry.baseUrl.get
     CrudEntry.CrudEntry.date.set(date)
     CrudEntry.CrudEntry.name.set(user)
     val expireDate = Calendar.getInstance()
