@@ -76,7 +76,7 @@ class RSSImportActor extends Actor  with Loggable {
 
         if (Entry.findAll.find(_.news.get.trim.equalsIgnoreCase(news.trim)).isEmpty) {
           logger debug "insert new entry from rss"
-          createEntry(user, pubDateString, subject, news, baseURL)
+          createEntry(user, pubDateString, subject, news, URLEncoder.encode(baseURL,"UTF-8") )
         }
     }
   }
@@ -84,8 +84,8 @@ class RSSImportActor extends Actor  with Loggable {
   def createEntry(user: String, date: String, subject: String, news: String, baseURL:String) = {
     val CrudEntry = new CRUDEntry
 
-    CrudEntry.CrudEntry.baseUrl.set(URLEncoder.encode(baseURL,"UTF-8") )
-    //logger debug CrudEntry.CrudEntry.baseUrl.get
+    CrudEntry.CrudEntry.baseUrl.set(baseURL)
+    //logger debug baseURL
     CrudEntry.CrudEntry.date.set(date)
     CrudEntry.CrudEntry.name.set(user)
     val expireDate = Calendar.getInstance()
