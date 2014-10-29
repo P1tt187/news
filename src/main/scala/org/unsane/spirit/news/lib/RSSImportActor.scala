@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
 import java.util.{Calendar, Locale}
 
+import dispatch.classic.{Request, url, Http}
 import it.sauronsoftware.feed4j.FeedParser
 import net.liftweb.common.Loggable
 import org.unsane.spirit.news.lib.RSSReader._
@@ -107,7 +108,7 @@ class RSSImportActor extends Actor with Loggable {
     def parseSubject(subject: String) = {
       val suffix = "[,:-]?[ ]?[,:-]?"
       val prefix = "[MBbAa]{2}"
-      val searchStrings = allSemesterAsList4News.map(prefix + _) ++ allSemesterAsList4News.map(prefix + _.toLowerCase) ++ allSemesterAsList4News ++ allSemesterAsList4News.map(_.toLowerCase)
+      val searchStrings = allSemesterAsList4News.map(prefix + ""+_+"") ++ allSemesterAsList4News.map(prefix + _.toLowerCase) ++ allSemesterAsList4News ++ allSemesterAsList4News.map(_.toLowerCase)
 
       var result: String = subject
 

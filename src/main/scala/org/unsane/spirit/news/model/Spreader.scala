@@ -85,7 +85,10 @@ object Spreader extends Actor with Config with Loggable {
             val http = new Http
             //val longUrl = url("http://is.gd/api.php?longurl=http://spirit.fh-schmalkalden.de/entry/" + nr)
             //val tinyurl = http(longUrl as_str)
-            val stuipUrl = http(url("http://is.gd/api.php?longurl="+baseURL) as_str)
+            val param = Map("longurl"->baseURL)
+            val request = url("http://is.gd/api.php") <<? param
+            val stuipUrl = http(request as_str)
+            http.shutdown()
             val theTweet=mkTweet(subject, stuipUrl, semester)
             logger debug theTweet
             twitter.updateStatus(theTweet)
