@@ -77,7 +77,7 @@ class RSSImportActor extends Actor with Loggable {
 
         if (Entry.findAll.find(_.news.get.trim.equalsIgnoreCase(news.trim)).isEmpty) {
           logger debug "insert new entry from rss"
-          createEntry(user, pubDateString, subject, news, URLEncoder.encode(baseURL, "UTF-8"))
+          createEntry(user, pubDateString, subject, news,baseURL)
         }
     }
   }
