@@ -40,7 +40,7 @@ import twitter4j._
 import twitter4j.conf.ConfigurationBuilder
 
 import scala.actors._
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 
 /** This is one cool feature!
@@ -91,6 +91,8 @@ object Spreader extends Actor with Config with Loggable {
                 val theTweet=mkTweet(subject, stuipUrl, semester)
                 logger debug theTweet
                 twitter.updateStatus(theTweet)
+              case Failure(e) =>
+                logger error e
 
             }
 
