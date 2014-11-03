@@ -33,17 +33,13 @@
 package org.unsane.spirit.news
 package model
 
+import dispatch.Defaults._
 import dispatch._
-import Defaults._
-
-import twitter4j.conf.ConfigurationBuilder
-import scala.actors._
-
 import net.liftweb.common.Loggable
-
-
 import twitter4j._
+import twitter4j.conf.ConfigurationBuilder
 
+import scala.actors._
 import scala.util.Success
 
 
@@ -95,6 +91,7 @@ object Spreader extends Actor with Config with Loggable {
                 val theTweet=mkTweet(subject, stuipUrl, semester)
                 logger debug theTweet
                 twitter.updateStatus(theTweet)
+
             }
 
 

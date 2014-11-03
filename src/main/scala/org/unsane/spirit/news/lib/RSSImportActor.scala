@@ -1,14 +1,12 @@
 package org.unsane.spirit.news.lib
 
 import java.io.File
-import java.net.{URL, URLEncoder}
 import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
-import java.util.{Formatter, Calendar, Locale}
+import java.util.{Calendar, Formatter, Locale}
 
+import dispatch.Defaults._
 import dispatch._
-import Defaults._
-
 import it.sauronsoftware.feed4j.FeedParser
 import net.liftweb.common.Loggable
 import org.unsane.spirit.news.lib.RSSReader._
@@ -27,7 +25,7 @@ import scala.util.{Failure, Success}
  */
 class RSSImportActor extends Actor with Loggable {
 
-  val FEED_URL ="https://studip.fh-schmalkalden.de/rss.php?id=a88776e9ec68c2990f6cbb5ff8609752"
+  val FEED_URL = "https://studip.fh-schmalkalden.de/rss.php?id=a88776e9ec68c2990f6cbb5ff8609752"
   val DOM_URL = "http://purl.org/dc/elements/1.1/"
 
   private lazy val df = new SimpleDateFormat("EEE', 'dd' 'MMM' 'yyyy' 'HH:mm:ss' 'Z", Locale.US)
@@ -41,22 +39,24 @@ class RSSImportActor extends Actor with Loggable {
         case Next =>
           logger debug "try to import rss entrys"
 
-          val tmpFile = File.createTempFile("feed","xml")
+          val tmpFile = File.createTempFile("feed", "xml")
           val output = new Formatter(tmpFile)
 
-          Http(url(FEED_URL) OK as.String) onComplete{
-            case Success(content)=>
-              output.format("%s%n",content)
+          Http(url(FEED_URL) OK as.String) onComplete {
+            case Success(content) =>
+              output.format("%s%n", content)
               output.flush()
               output.close()
 
               parseFeed(tmpFile)
 
               tmpFile.delete()
+
             case Failure(errorMessage) =>
               logger error errorMessage
-                output.close()
-                tmpFile.delete()
+              output.close()
+              tmpFile.delete()
+
           }
 
 
@@ -73,8 +73,7 @@ class RSSImportActor extends Actor with Loggable {
 
   }
 
-  private def parseFeed(tmpFile:File) = {
-
+  private def parseFeed(tmpFile: File) = {
 
 
     val feed = FeedParser.parse(tmpFile.toURI.toURL)
@@ -102,26 +101,26 @@ class RSSImportActor extends Actor with Loggable {
 
         if (Entry.findAll.find(_.news.get.trim.equalsIgnoreCase(news.trim)).isEmpty) {
           logger debug "insert new entry from rss"
-          createEntry(user, pubDateString, subject, news,baseURL)
+          createEntry(user, pubDateString, subject, news, baseURL)
         }
     }
   }
 
-  private def correctNews(content:String):String={
+  private def correctNews(content: String): String = {
     val parts = content.split(" ")
-    val originalMails=parts.filter(_.contains("mailto:"))
-    val replacements = originalMails.map{
-      om=>
+    val originalMails = parts.filter(_.contains("mailto:"))
+    val replacements = originalMails.map {
+      om =>
         var replace = om
-        if(replace.endsWith(".")||replace.endsWith(",")|| replace.endsWith(":")){
-          replace = replace.substring(0,replace.length-1)
+        if (replace.endsWith(".") || replace.endsWith(",") || replace.endsWith(":")) {
+          replace = replace.substring(0, replace.length - 1)
         }
 
-        (om, "<a href='"+replace+"'>" + om.replaceAll("mailto:","") + "</a>")
+        (om, "<a href='" + replace + "'>" + om.replaceAll("mailto:", "") + "</a>")
     }
     var result = content
-    replacements.foreach{
-      case (original,replace)=>
+    replacements.foreach {
+      case (original, replace) =>
         result = result.replaceAll(original, replace)
     }
 
@@ -133,7 +132,7 @@ class RSSImportActor extends Actor with Loggable {
     def parseSubject(subject: String) = {
       val suffix = "[,:-]?[ ]?[,:-]?"
       val prefix = "[MBbAa]{2}"
-      val searchStrings = allSemesterAsList4News.map(prefix + ""+_+"") ++ allSemesterAsList4News.map(prefix + _.toLowerCase) ++ allSemesterAsList4News ++ allSemesterAsList4News.map(_.toLowerCase)
+      val searchStrings = allSemesterAsList4News.map(prefix + "" + _ + "") ++ allSemesterAsList4News.map(prefix + _.toLowerCase) ++ allSemesterAsList4News ++ allSemesterAsList4News.map(_.toLowerCase)
 
       var result: String = subject
 
