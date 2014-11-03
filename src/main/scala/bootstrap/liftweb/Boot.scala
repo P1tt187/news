@@ -222,7 +222,7 @@ class Boot extends Loggable with Config {
     LiftRules.htmlProperties.default.set((r: Req) =>
       new Html5Properties(r.userAgent))
     System.setProperty("jsse.enableSNIExtension", "false")
-
+    disableCertChecking()
     RSSReader.run()
     UploadWatcher.run()
     DayChecker.start()
@@ -234,4 +234,26 @@ class Boot extends Loggable with Config {
 
   }
 
+  def disableCertChecking(): Unit ={
+    // Create a trust manager that does not validate certificate chains
+    val trustAllCerts = Array[TrustManager] (new X509TrustManager {override def getAcceptedIssuers: Array[X509Certificate] = {null}
+
+      override def checkClientTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {}
+
+      override def checkServerTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {}
+    } )
+
+
+    // Install the all-trusting trust manager
+    val sc = SSLContext.getInstance("SSL");
+    sc.init(null, trustAllCerts, new java.security.SecureRandom());
+    HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+    // Create all-trusting host name verifier
+    val allHostsValid = new HostnameVerifier {
+      override def verify(s: String, sslSession: SSLSession): Boolean = true
+    }
+    // Install the all-trusting host verifier
+    HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+  }
 }
