@@ -1,11 +1,14 @@
 package org.unsane.spirit.news.lib
 
+import java.io.File
 import java.net.{URL, URLEncoder}
 import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
-import java.util.{Calendar, Locale}
+import java.util.{Formatter, Calendar, Locale}
 
-import dispatch.classic.{Request, url, Http}
+import dispatch._
+import Defaults._
+
 import it.sauronsoftware.feed4j.FeedParser
 import net.liftweb.common.Loggable
 import org.unsane.spirit.news.lib.RSSReader._
@@ -13,6 +16,7 @@ import org.unsane.spirit.news.model.Entry
 import org.unsane.spirit.news.snippet.CRUDEntry
 
 import scala.actors.Actor
+import scala.util.{Failure, Success}
 
 /**
  * @author fabian
@@ -23,7 +27,7 @@ import scala.actors.Actor
  */
 class RSSImportActor extends Actor with Loggable {
 
-  val FEED_URL = new URL("https://studip.fh-schmalkalden.de/rss.php?id=a88776e9ec68c2990f6cbb5ff8609752")
+  val FEED_URL ="https://studip.fh-schmalkalden.de/rss.php?id=a88776e9ec68c2990f6cbb5ff8609752"
   val DOM_URL = "http://purl.org/dc/elements/1.1/"
 
   private lazy val df = new SimpleDateFormat("EEE', 'dd' 'MMM' 'yyyy' 'HH:mm:ss' 'Z", Locale.US)
@@ -37,7 +41,25 @@ class RSSImportActor extends Actor with Loggable {
         case Next =>
           logger debug "try to import rss entrys"
 
-          parseFeed()
+          val tmpFile = File.createTempFile("feed","xml")
+          val output = new Formatter(tmpFile)
+
+          Http(url(FEED_URL) OK as.String) onComplete{
+            case Success(content)=>
+              output.format("%s%n",content)
+              output.flush()
+              output.close()
+
+              parseFeed(tmpFile)
+
+              tmpFile.delete()
+            case Failure(errorMessage) =>
+              logger error errorMessage
+                output.close()
+                tmpFile.delete()
+          }
+
+
 
           Thread.sleep(TimeUnit.MINUTES.toMillis(1))
           this ! Next
@@ -51,8 +73,11 @@ class RSSImportActor extends Actor with Loggable {
 
   }
 
-  def parseFeed() = {
-    val feed = FeedParser.parse(FEED_URL)
+  private def parseFeed(tmpFile:File) = {
+
+
+
+    val feed = FeedParser.parse(tmpFile.toURI.toURL)
 
     val maxResults = if (feed.getItemCount > 50) {
       50

@@ -34,16 +34,18 @@ package org.unsane.spirit.news
 package model
 
 import dispatch._
-import dispatch.classic._
-import oauth._
+import Defaults._
+
 import twitter4j.conf.ConfigurationBuilder
 import scala.actors._
-import Http._
+
 import net.liftweb.common.Loggable
-import net.liftweb.http.S
+
 
 import twitter4j._
-import auth.AccessToken
+
+import scala.util.Success
+
 
 /** This is one cool feature!
  * Spreader takes the Entry number, gets a TinyURL for this.
@@ -82,16 +84,20 @@ object Spreader extends Actor with Config with Loggable {
       react {
         case Tweet(subject,semester,nr, baseURL) =>
           try {
-            val http = new Http
+
             //val longUrl = url("http://is.gd/api.php?longurl=http://spirit.fh-schmalkalden.de/entry/" + nr)
             //val tinyurl = http(longUrl as_str)
             val param = Map("longurl"->baseURL)
             val request = url("http://is.gd/api.php") <<? param
-            val stuipUrl = http(request as_str)
-            http.shutdown()
-            val theTweet=mkTweet(subject, stuipUrl, semester)
-            logger debug theTweet
-            twitter.updateStatus(theTweet)
+            Http(request OK as.String) onComplete  {
+              case Success (stuipUrl) =>
+
+                val theTweet=mkTweet(subject, stuipUrl, semester)
+                logger debug theTweet
+                twitter.updateStatus(theTweet)
+            }
+
+
           } catch {
             case e:Throwable =>
               logger error e.toString

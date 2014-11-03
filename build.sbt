@@ -8,7 +8,7 @@ version := "1.3.0"
 
 organization := "SPIRIT"
 
-//scalaVersion := "2.11.1"
+scalaVersion := "2.10.4"
 
 resolvers ++= Seq("snapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
                 "releases" at "http://oss.sonatype.org/content/repositories/releases"
@@ -22,21 +22,20 @@ seq(SbtStartScript.startScriptForClassesSettings: _*)
 
 // net.virtualvoid.sbt.graph.Plugin.graphSettings // for sbt dependency-graph plugin
 
-scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature","-language:implicitConversions","-language:postfixOps"
-)
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature","-language:implicitConversions","-language:postfixOps")
 
 javacOptions ++= Seq("-Djsse.enableSNIExtension=false")
 
 libraryDependencies ++= {
   val liftVersion = "2.5"
   val twitter4jVersion="4.0.2"
-  val dispatchVersion="0.8.10"
+  val dispatchVersion="0.11.2"
   Seq(
    "net.tanesha.recaptcha4j" % "recaptcha4j" % "0.0.7",
-    "org.twitter4j" % "twitter4j-stream" % twitter4jVersion, 
-    "net.databinder" % "dispatch-core_2.10" % dispatchVersion withSources,
-    "net.databinder" % "dispatch-http_2.10" % dispatchVersion withSources,
-    "net.databinder" % "dispatch-oauth_2.10" % dispatchVersion withSources,
+    "org.twitter4j" % "twitter4j-stream" % twitter4jVersion,
+    "net.databinder.dispatch" %% "dispatch-core" % dispatchVersion withSources,
+//    "net.databinder" % "dispatch-http_2.10" % dispatchVersion withSources,
+//    "net.databinder" % "dispatch-oauth_2.10" % dispatchVersion withSources,
     "net.liftmodules" %% "textile_2.5" % "1.3" % "compile->default" withSources,
     "net.liftmodules" %% "widgets_2.5" % "1.3" % "compile->default" withSources,
     "net.liftweb" %% "lift-webkit" % liftVersion % "compile->default" withSources,
