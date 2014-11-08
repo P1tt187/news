@@ -40,13 +40,11 @@ class RSSImportActor extends Actor with Loggable {
           logger debug "try to import rss entrys"
 
           val tmpFile = File.createTempFile("feed", ".xml")
-          val output = new Formatter(tmpFile)
+          //val output = new Formatter(tmpFile)
 
-          Http(url(FEED_URL) OK as.String) onComplete {
-            case Success(content) =>
-              output.format("%s%n", content)
-              output.flush()
-              output.close()
+          Http(url(FEED_URL) > as.File(tmpFile)) onComplete {
+            case Success(_) =>
+
 
               parseFeed(tmpFile)
 
@@ -54,7 +52,7 @@ class RSSImportActor extends Actor with Loggable {
 
             case Failure(errorMessage) =>
               logger error errorMessage
-              output.close()
+
               tmpFile.delete()
 
           }
