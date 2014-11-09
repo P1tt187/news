@@ -3,6 +3,7 @@ package org.unsane.spirit.news.lib
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
+import java.util.regex.Pattern
 import java.util.{Calendar, Formatter, Locale}
 
 import dispatch.Defaults._
@@ -127,18 +128,48 @@ class RSSImportActor extends Actor with Loggable {
 
   def createEntry(user: String, date: String, subject: String, news: String, baseURL: String) = {
 
-    def parseSubject(subject: String) = {
+    /** search for coursenames in the title and remove it*/
+    def parseSubject(subject: String):String = {
       val suffix = "[,:-]?[ ]?[,:-]?"
       val prefix = "[MBbAa]{2}"
-      val searchStrings = allSemesterAsList4News.map(prefix + "" + _ + "") ++ allSemesterAsList4News.map(prefix + _.toLowerCase) ++ allSemesterAsList4News ++ allSemesterAsList4News.map(_.toLowerCase)
+      val searchStrings = allSemesterAsList4News.map(prefix  + _ ) ++ allSemesterAsList4News.map(prefix + _.toLowerCase) ++ allSemesterAsList4News ++ allSemesterAsList4News.map(_.toLowerCase)
 
-      var result: String = subject
+      var result: String = subject.replaceAll("\\p{javaSpaceChar}[-]","")
 
-      searchStrings.foreach { semester =>
+      val coursesWithIndexes = searchStrings.map{
+        search=>
+          val pattern = Pattern.compile(search, Pattern.CASE_INSENSITIVE)
+          val matcher = pattern.matcher(result)
+          val index = if(matcher.find()) {
+            matcher.start()
+          }
+          else{
+            -1
+          }
+          (search, index)
+      }.filter{case (_,index) => index != -1  }.sortBy(_._2)
 
-        result = result.replaceAll(semester + suffix, "")
+      if(coursesWithIndexes.isEmpty){
+        return subject
       }
-      result.trim
+
+      var filterList = coursesWithIndexes.filter( _._1.matches(prefix) ).sortBy(_._2)
+      if(filterList.isEmpty){
+        filterList = coursesWithIndexes
+      }
+
+      val (_,firstIndex) = filterList.head
+      val (lastCourse,lastIndex) = filterList.last
+      val replaceString = result.substring(firstIndex, lastIndex + lastCourse.length )
+      result = result.replaceAll(replaceString,"").trim
+      val suffixMatcher = Pattern.compile(suffix).matcher(result)
+
+      if(suffixMatcher.find() && suffixMatcher.start() <2 ){
+        result.replaceFirst(suffix,"").trim
+      } else {
+        result
+      }
+
     }
 
     val CrudEntry = new CRUDEntry
@@ -167,7 +198,7 @@ class RSSImportActor extends Actor with Loggable {
 
     CrudEntry.CrudEntry.semester.set(changedSemester.toString.trim)
     CrudEntry.CrudEntry.writer.set(user)
-    CrudEntry.CrudEntry.subject.set(parseSubject(subject))
+    CrudEntry.CrudEntry.subject.set(parseSubject(parseSubject(subject)))
     CrudEntry.CrudEntry.news.set(news)
     CrudEntry.create()
   }
