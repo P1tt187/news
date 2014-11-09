@@ -33,11 +33,11 @@
 package org.unsane.spirit.news
 package model
 
-import dispatch.Defaults._
-import dispatch._
+import dispatch._,Defaults._
 import net.liftweb.common.Loggable
-import twitter4j._
-import twitter4j.conf.ConfigurationBuilder
+import com.ning.http.client.oauth._
+import repatch.twitter.request._
+
 
 import scala.actors._
 import scala.util.{Failure, Success}
@@ -53,14 +53,9 @@ case class Tweet(subject: String, semester: String, number: String, baseURL:Stri
 
 object Spreader extends Actor with Config with Loggable {
 
-  private val confBuilder = new ConfigurationBuilder
-  confBuilder.setOAuthAccessToken(loadProps("Token"))
-  confBuilder.setOAuthAccessTokenSecret(loadProps("TokenSecret"))
-  confBuilder.setOAuthConsumerKey(loadProps("Consumer"))
-  confBuilder.setOAuthConsumerSecret(loadProps("ConsumerSecret"))
-
-
-  private val twitter = new TwitterFactory(confBuilder.build()).getInstance()
+  val consumer = new ConsumerKey(loadProps("Consumer"),loadProps("ConsumerSecret"))
+  val accessToken = new RequestToken(loadProps("Token"),loadProps("TokenSecret"))
+  val client = OAuthClient(consumer,accessToken)
 
   private def mkTweet(subject: String, tinyurl: String, semester: String) = {
     val tailWithoutSemester = " " + tinyurl
@@ -90,7 +85,8 @@ object Spreader extends Actor with Config with Loggable {
 
                 val theTweet=mkTweet(subject, stuipUrl, semester)
                 logger debug theTweet
-                twitter.updateStatus(theTweet)
+                //twitter.updateStatus(theTweet)
+                Http(client(Status.update(theTweet)))
               case Failure(e) =>
                 logger error e
 

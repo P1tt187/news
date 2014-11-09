@@ -14,7 +14,7 @@ resolvers ++= Seq("snapshots" at "http://oss.sonatype.org/content/repositories/s
                 "releases" at "http://oss.sonatype.org/content/repositories/releases"
                 )
 
-
+resolvers += Resolver.sonatypeRepo("public")
 
 seq(webSettings :_*)
 
@@ -28,14 +28,11 @@ javacOptions ++= Seq("-Djsse.enableSNIExtension=false")
 
 libraryDependencies ++= {
   val liftVersion = "2.5"
-  val twitter4jVersion="4.0.2"
   val dispatchVersion="0.11.2"
   Seq(
    "net.tanesha.recaptcha4j" % "recaptcha4j" % "0.0.7",
-    "org.twitter4j" % "twitter4j-stream" % twitter4jVersion,
+    "com.eed3si9n" %% "repatch-twitter-core" % "dispatch0.11.1_0.1.0" withSources,
     "net.databinder.dispatch" %% "dispatch-core" % dispatchVersion withSources,
-//    "net.databinder" % "dispatch-http_2.10" % dispatchVersion withSources,
-//    "net.databinder" % "dispatch-oauth_2.10" % dispatchVersion withSources,
     "net.liftmodules" %% "textile_2.5" % "1.3" % "compile->default" withSources,
     "net.liftmodules" %% "widgets_2.5" % "1.3" % "compile->default" withSources,
     "net.liftweb" %% "lift-webkit" % liftVersion % "compile->default" withSources,
@@ -55,7 +52,7 @@ libraryDependencies ++= {
     "javax.mail" % "mail" % "1.4.7",
     "javax.servlet" % "servlet-api" % "2.5" % "provided",
     "org.scala-stm" %% "scala-stm" % "0.7"
-    )
+  )
 }
 
     //lazy val root = (project in file(".")).addPlugins(SbtWeb)
