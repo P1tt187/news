@@ -1,18 +1,21 @@
 package org.unsane.spirit.news.lib
 
-import java.io.File
+import java.io.{StringReader, StringWriter, File}
 import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import java.util.{Calendar, Formatter, Locale}
+import javax.xml.transform.stream.{StreamResult, StreamSource}
 
 import dispatch.Defaults._
 import dispatch._
 import it.sauronsoftware.feed4j.FeedParser
 import net.liftweb.common.Loggable
+import org.apache.commons.lang3.StringEscapeUtils
 import org.unsane.spirit.news.lib.RSSReader._
 import org.unsane.spirit.news.model.Entry
 import org.unsane.spirit.news.snippet.CRUDEntry
+import com.overzealous.remark.{Options, Remark}
 
 import scala.actors.Actor
 import scala.util.{Failure, Success}
@@ -83,7 +86,7 @@ class RSSImportActor extends Actor with Loggable {
       feed.getItemCount
     }
 
-    val items = (0 to maxResults - 1).par.map {
+    val items = (0 to maxResults - 1).map {
       index =>
         feed.getItem(index)
     }.seq.sortBy(item => df.parse(item.getElementValue("", "pubDate")))
@@ -93,16 +96,26 @@ class RSSImportActor extends Actor with Loggable {
         val user = item.getElementValue(DOM_URL, "contributor")
         val subject = item.getTitle
         //val news = item.getDescriptionAsHTML.replaceAll("mailto:", "") //.replaceAll("<br />", "\n").replaceAll("<li>", "* ").replaceAll("</li>", "\n")
-        val news = correctNews(item.getDescriptionAsHTML)
+        val news = transformHtml2Markdown(correctNews(item.getDescriptionAsHTML).replaceAll("\\p{javaSpaceChar}"," ").trim)
 
         val pubDateString = item.getElementValue("", "pubDate").split(",")(1)
         val baseURL = item.getLink.toString
 
-        if (Entry.findAll.find(_.news.get.trim.equalsIgnoreCase(news.trim)).isEmpty) {
+        if (Entry.findAll.find(_.news.get.replaceAll("\\p{javaSpaceChar}"," ").trim.equalsIgnoreCase(news)).isEmpty) {
           logger debug "insert new entry from rss"
           createEntry(user, pubDateString, subject, news, baseURL)
         }
     }
+  }
+
+  private def transformHtml2Markdown(content:String)={
+    val options = Options.markdown()
+    options.simpleLinkIds = false
+    options.inlineLinks = true
+    options.preserveRelativeLinks = true
+    val remark = new Remark(options)
+
+    remark.convert(content)
   }
 
   private def correctNews(content: String): String = {
@@ -131,8 +144,18 @@ class RSSImportActor extends Actor with Loggable {
     /** search for coursenames in the title and remove it*/
     def parseSubject(subject: String):String = {
       val suffix = "[,:-]?[ ]?[,:-]?"
-      val prefix = "[MBbAa]{2}"
-      val searchStrings = allSemesterAsList4News.map(prefix  + _ ) ++ allSemesterAsList4News.map(prefix + _.toLowerCase) ++ allSemesterAsList4News ++ allSemesterAsList4News.map(_.toLowerCase)
+      val prefix = "[MBA]{2}"
+
+      val searchStrings = coursesWithAlias.keySet.par.flatMap{
+        course=>
+
+          coursesWithAlias(course).par.flatMap{
+            alias=>
+            semesterRange.map{
+              number=> alias + number
+            }
+          }
+      }.toList
 
       var result: String = subject.replaceAll("\\p{javaSpaceChar}[-]","")
 

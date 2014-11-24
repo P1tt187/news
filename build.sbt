@@ -4,7 +4,7 @@ import com.typesafe.sbt.SbtStartScript
 
 name := "SPIRIT-News"
 
-version := "1.3.0"
+version := "1.3.5"
 
 organization := "SPIRIT"
 
@@ -51,6 +51,8 @@ libraryDependencies ++= {
     "org.eclipse.jetty" % "jetty-server" % "7.6.14.v20131031",
     "javax.mail" % "mail" % "1.4.7",
     "javax.servlet" % "servlet-api" % "2.5" % "provided",
+    "org.apache.commons" % "commons-lang3" % "3.3.2",
+    "org.jsoup" % "jsoup" % "1.8.1",
     "org.scala-stm" %% "scala-stm" % "0.7"
   )
 }

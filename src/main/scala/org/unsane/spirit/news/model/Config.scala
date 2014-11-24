@@ -33,10 +33,18 @@
 package org.unsane.spirit.news
 package model
 
+import java.net.{URL, URI}
 import java.util.Properties
 import java.io._
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.stream.StreamSource
+
+import net.liftweb.common.Full
+
 import collection.mutable.ArrayBuffer
 import net.liftweb.json.ext._Interval
+import net.liftweb._
+import http._
 
 /**
  * Could have used Lift's Props, but using java.util.Properties fitted the solution in a better way.
@@ -54,13 +62,30 @@ trait Config {
   }
 
   lazy val allSemesterAsList4News = {
-    loadSemesters("BaI").take(3) :::
-    loadSemesters("BaWI").take(3) :::
+    loadSemesters("BaI") :::
+    loadSemesters("BaWI") :::
     loadSemesters("BaITS") :::
     loadSemesters("BaMuMa") :::
     loadSemesters("BaMC") :::
     loadSemesters("Ma")
   }
+
+  lazy val coursesWithAlias = {
+    loadProps("aliases").split(";").map{
+      field=>
+        val courseAliasArray = field.split(":")
+        val course = courseAliasArray(0)
+        val aliases = courseAliasArray(1).split(",").toList
+        (course,aliases)
+    }.toMap
+  }
+
+  lazy val semesterRange = {
+    val ranges = loadProps("semesterRange").split(";").map(_.toInt).toList.sorted
+    (ranges(0) to ranges(1)).toList
+  }
+
+
 
   /**
    * loadEmails loads the mailings lists
