@@ -34,6 +34,7 @@ libraryDependencies ++= {
     "com.eed3si9n" %% "repatch-twitter-core" % "dispatch0.11.1_0.1.0" withSources,
     "net.databinder.dispatch" %% "dispatch-core" % dispatchVersion withSources,
     "net.liftmodules" %% "textile_2.5" % "1.3" % "compile->default" withSources,
+    "net.liftweb" % "lift-markdown_2.10" % "2.6-RC1" % "compile->default" withSources,
     "net.liftmodules" %% "widgets_2.5" % "1.3" % "compile->default" withSources,
     "net.liftweb" %% "lift-webkit" % liftVersion % "compile->default" withSources,
     "net.liftweb" %% "lift-mapper" % liftVersion % "compile->default" withSources,

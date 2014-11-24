@@ -33,11 +33,14 @@
 package org.unsane.spirit.news
 package snippet
 
+import com.overzealous.remark.Remark
 import net.liftweb.util.PCDataXmlParser
 
 import scala.xml._
 import net.liftweb.util.Helpers._
 import net.liftmodules.textile._
+import net.liftweb.markdown._
+
 import net.liftweb.json.JsonDSL._
 import model.{Config, Entry}
 import net.liftweb.common.{Empty, Box, Full, Loggable}
@@ -110,8 +113,8 @@ class ViewNews extends SpiritHelpers with Loggable with Config {
      ".date"      #> Text(entry.date.value.toString.substring(4, 11) + ". " +
                           entry.date.value.toString.substring(17, 22)) &
      ".semester"  #> sem2link(semesterChanger(entry.semester.value.toString).split(" ")) &
-     //".news"      #>  mkXMLHeader(entry.news.value))
-     ".news"      #> TextileParser.toHtml(entry.news.value.toString)
+     ".news"      #> mkXMLHeader(ActuariusApp(entry.news.value))
+     //".news"      #> TextileParser.toHtml(entry.news.value.toString)
    )
 
   }
