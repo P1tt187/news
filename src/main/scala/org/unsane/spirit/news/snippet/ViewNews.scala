@@ -34,14 +34,18 @@ package org.unsane.spirit.news
 package snippet
 
 
-import net.liftweb.common.{Full, Loggable}
-import net.liftweb.http.js.{JE, JsExp}
-import net.liftweb.http.{S, SHtml}
-import net.liftweb.json.JsonDSL._
-import net.liftweb.util.Helpers._
-import org.unsane.spirit.news.model.{Config, Entry}
+import net.liftweb.util.PCDataXmlParser
 
 import scala.xml._
+import net.liftweb.util.Helpers._
+
+import net.liftweb.markdown._
+
+import net.liftweb.json.JsonDSL._
+import model.{Config, Entry}
+import net.liftweb.common.{Empty, Box, Full, Loggable}
+import net.liftweb.http.{SHtml, S}
+import net.liftweb.http.js.{JE,JsExp}
 
 /**
  * @author Marcus Denison

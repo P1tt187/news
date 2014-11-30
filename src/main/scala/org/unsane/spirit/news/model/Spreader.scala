@@ -33,10 +33,11 @@
 package org.unsane.spirit.news
 package model
 
-import com.ning.http.client.oauth._
-import dispatch.Defaults._
-import dispatch._
+import dispatch._,Defaults._
 import net.liftweb.common.Loggable
+import com.ning.http.client.oauth._
+import repatch.twitter.request._
+
 
 import scala.actors._
 import scala.util.{Failure, Success}

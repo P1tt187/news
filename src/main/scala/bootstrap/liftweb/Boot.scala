@@ -32,21 +32,26 @@
  */
 package bootstrap.liftweb
 
-import net.liftweb._
-import net.liftweb.common._
-import net.liftweb.http._
-import net.liftweb.http.auth.{AuthRole, HttpBasicAuthentication, userRoles}
-import net.liftweb.mongodb._
-import net.liftweb.sitemap.Loc._
-import net.liftweb.sitemap._
-import net.liftweb.util.Helpers._
-import net.liftweb.util._
+import java.security.cert.X509Certificate
+import javax.net.ssl._
+
 import org.unsane.spirit.news._
-import org.unsane.spirit.news.fun._
-import org.unsane.spirit.news.lib._
-import org.unsane.spirit.news.model._
-import org.unsane.spirit.news.rest.RestApi
-import org.unsane.spirit.news.snippet.Feed
+import model._
+import lib._
+import fun._
+import rest.RestApi
+import snippet.Feed
+
+import net.liftweb._
+import http._
+import auth.{AuthRole, userRoles, HttpBasicAuthentication}
+import sitemap._
+import Loc._
+
+import common._
+import util._
+import util.Helpers._
+import mongodb._
 
 /**
  * @todo Please refactor me!

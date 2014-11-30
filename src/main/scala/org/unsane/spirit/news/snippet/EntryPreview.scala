@@ -2,13 +2,16 @@ package org.unsane.spirit.news
 package snippet
 
 import net.liftweb.http._
-import net.liftweb.http.js.JE._
-import net.liftweb.http.js.JsCmds._
-import net.liftweb.http.js._
-import net.liftweb.util.Helpers._
+import S._
+import js._
+import JsCmds._
+import JE._
+import net.liftweb.common._
 import net.liftweb.util._
-
+import Helpers._
 import scala.xml._
+import net.liftmodules.textile._
+import net.liftweb.markdown._
 
 trait EntryPreview extends SpiritHelpers {
 
