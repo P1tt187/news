@@ -33,17 +33,15 @@
 package org.unsane.spirit.news
 package snippet
 
-import model.{ Entry, Config }
-import scala.xml._
-import net.liftweb.util.Helpers._
-import net.liftweb.http.SHtml._
-import java.util._
 import java.text._
-import scala.collection._
-import net.liftweb.common.Box
-import net.liftweb.http.{LiftResponse, S}
-import net.liftweb.common.Full
-import net.liftweb.http.StreamingResponse
+import java.util._
+
+import net.liftweb.http.S
+import net.liftweb.http.SHtml._
+import net.liftweb.util.PCDataXmlParser
+import org.unsane.spirit.news.model.Entry
+
+import scala.xml._
 
 /**
  * @author Marcus Denison
@@ -106,6 +104,12 @@ trait SpiritHelpers {
           returnDate
       }
       
+  }
+
+  def mkXMLHeader(value:String)={
+
+    PCDataXmlParser(new StringBuilder( "<div>").append(value).append("</div>").toString ) openOr Text("Failed to parse str")
+
   }
 
   private val userhome = System.getProperty("user.dir")

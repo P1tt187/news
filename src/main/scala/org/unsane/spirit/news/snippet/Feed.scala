@@ -33,10 +33,10 @@
 package org.unsane.spirit.news
 package snippet
 
+import net.liftmodules.textile._
 import net.liftweb.http._
 import net.liftweb.http.rest._
 import org.unsane.spirit.news.model.Entry
-import net.liftmodules.textile._
 
 object Feed extends RestHelper with SpiritHelpers {
 
@@ -85,9 +85,7 @@ object Feed extends RestHelper with SpiritHelpers {
              {TextileParser.toHtml(entry.news.value).toString}
            </description>
            <link>
-             {url}
-             /entry/
-             {entry.nr.value}
+             {url}/entry/{entry.nr.value}
            </link>
            <guid isPermaLink="false">
              {entry.nr.value}

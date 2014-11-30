@@ -33,11 +33,10 @@
 package org.unsane.spirit.news
 package model
 
-import dispatch._,Defaults._
-import net.liftweb.common.Loggable
 import com.ning.http.client.oauth._
-import repatch.twitter.request._
-
+import dispatch.Defaults._
+import dispatch._
+import net.liftweb.common.Loggable
 
 import scala.actors._
 import scala.util.{Failure, Success}
@@ -76,9 +75,10 @@ object Spreader extends Actor with Config with Loggable {
         case Tweet(subject,semester,nr, baseURL) =>
           try {
 
-            //val longUrl = url("http://is.gd/api.php?longurl=http://spirit.fh-schmalkalden.de/entry/" + nr)
+            val longUrl = "http://fsi.fh-schmalkalden.de/spirit/entry/" + nr
             //val tinyurl = http(longUrl as_str)
-            val param = Map("longurl"->baseURL)
+           // val param = Map("longurl"->baseURL)
+            val param = Map("longurl"->longUrl)
             val request = url("http://is.gd/api.php") <<? param
             Http(request OK as.String) onComplete  {
               case Success (stuipUrl) =>

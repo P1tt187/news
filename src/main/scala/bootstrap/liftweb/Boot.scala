@@ -32,26 +32,21 @@
  */
 package bootstrap.liftweb
 
-import java.security.cert.X509Certificate
-import javax.net.ssl._
-
-import org.unsane.spirit.news._
-import model._
-import lib._
-import fun._
-import rest.RestApi
-import snippet.Feed
-
 import net.liftweb._
-import http._
-import auth.{AuthRole, userRoles, HttpBasicAuthentication}
-import sitemap._
-import Loc._
-
-import common._
-import util._
-import util.Helpers._
-import mongodb._
+import net.liftweb.common._
+import net.liftweb.http._
+import net.liftweb.http.auth.{AuthRole, HttpBasicAuthentication, userRoles}
+import net.liftweb.mongodb._
+import net.liftweb.sitemap.Loc._
+import net.liftweb.sitemap._
+import net.liftweb.util.Helpers._
+import net.liftweb.util._
+import org.unsane.spirit.news._
+import org.unsane.spirit.news.fun._
+import org.unsane.spirit.news.lib._
+import org.unsane.spirit.news.model._
+import org.unsane.spirit.news.rest.RestApi
+import org.unsane.spirit.news.snippet.Feed
 
 /**
  * @todo Please refactor me!
@@ -181,7 +176,7 @@ class Boot extends Loggable with Config {
       Menu(Loc("StundenplanDispatch", List("scheduleDispatch"), "Stundenplan")) ::
       schedule ::
     Menu(Loc("mobil",Link(List("mobilewebapp"),true,"/mobilewebapp/index"),"Mobil"))::
-      Menu(Loc("Verfassen", List("writenews"), "Verfassen", Hidden)) ::
+      Menu(Loc("Verfassen", List("writenews"), "Verfassen", loggedIn)) ::
       Menu(Loc("editieren", Link(List("edit"), true, "/edit/editieren"), "Editieren", Hidden)) ::
       Menu(Loc("ScheduleMgt", List("scheduleAdmin", "index"), "Std. Plan Verwaltung", adminLoggedIn)) ::
       Menu(Loc("schedule", List("schedule"), "schedule", Hidden),

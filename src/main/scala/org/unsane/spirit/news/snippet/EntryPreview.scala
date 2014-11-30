@@ -2,23 +2,21 @@ package org.unsane.spirit.news
 package snippet
 
 import net.liftweb.http._
-import S._
-import js._
-import JsCmds._
-import JE._
-import net.liftweb.common._
+import net.liftweb.http.js.JE._
+import net.liftweb.http.js.JsCmds._
+import net.liftweb.http.js._
+import net.liftweb.util.Helpers._
 import net.liftweb.util._
-import Helpers._
-import scala.xml._
-import net.liftmodules.textile._
 
-trait EntryPreview {
+import scala.xml._
+
+trait EntryPreview extends SpiritHelpers {
 
   object jsonPreview extends JsonHandler {
     def apply(in: Any): JsCmd =
       SetHtml("entry_preview", in match {
         case JsonCmd("preview", _, p: String, _) =>
-          <br /> +: <hr /> +: TextileParser.toHtml(p, Empty)
+          <br /> +: <hr /> +: mkXMLHeader(ActuariusApp(p))
         case x => <b>Oops.... {x}</b>
       })
   }
