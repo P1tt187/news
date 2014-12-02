@@ -33,18 +33,10 @@
 package org.unsane.spirit.news
 package model
 
-import java.net.{URL, URI}
-import java.util.Properties
 import java.io._
-import javax.xml.transform.TransformerFactory
-import javax.xml.transform.stream.StreamSource
+import java.util.Properties
 
-import net.liftweb.common.Full
-
-import collection.mutable.ArrayBuffer
-import net.liftweb.json.ext._Interval
-import net.liftweb._
-import http._
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Could have used Lift's Props, but using java.util.Properties fitted the solution in a better way.
@@ -113,6 +105,15 @@ trait Config {
   def loadProps(prop: String): String = {
     props load new FileInputStream(configFile)
     props getProperty prop
+  }
+
+  def loadProps(prop: String, default:String): String = {
+    val value = loadProps(prop)
+    if(value!=null){
+      value
+    } else {
+      default
+    }
   }
 
    // taken from http://code-redefined.blogspot.com/2009/05/md5-sum-in-scala.html

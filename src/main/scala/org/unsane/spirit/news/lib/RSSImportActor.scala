@@ -1,21 +1,19 @@
 package org.unsane.spirit.news.lib
 
-import java.io.{StringReader, StringWriter, File}
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
-import java.util.{Calendar, Formatter, Locale}
-import javax.xml.transform.stream.{StreamResult, StreamSource}
+import java.util.{Calendar, Locale}
 
+import com.overzealous.remark.{Options, Remark}
 import dispatch.Defaults._
 import dispatch._
 import it.sauronsoftware.feed4j.FeedParser
 import net.liftweb.common.Loggable
-import org.apache.commons.lang3.StringEscapeUtils
 import org.unsane.spirit.news.lib.RSSReader._
 import org.unsane.spirit.news.model.Entry
 import org.unsane.spirit.news.snippet.CRUDEntry
-import com.overzealous.remark.{Options, Remark}
 
 import scala.actors.Actor
 import scala.util.{Failure, Success}
@@ -96,19 +94,19 @@ class RSSImportActor extends Actor with Loggable {
         val user = item.getElementValue(DOM_URL, "contributor")
         val subject = item.getTitle
         //val news = item.getDescriptionAsHTML.replaceAll("mailto:", "") //.replaceAll("<br />", "\n").replaceAll("<li>", "* ").replaceAll("</li>", "\n")
-        val news = transformHtml2Markdown(correctNews(item.getDescriptionAsHTML).replaceAll("\\p{javaSpaceChar}"," ").trim)
+        val news = transformHtml2Markdown(correctNews(item.getDescriptionAsHTML).replaceAll("\\p{javaSpaceChar}", " ").trim)
 
         val pubDateString = item.getElementValue("", "pubDate").split(",")(1)
         val baseURL = item.getLink.toString
 
-        if (Entry.findAll.find(_.news.get.replaceAll("\\p{javaSpaceChar}"," ").trim.equalsIgnoreCase(news)).isEmpty) {
+        if (Entry.findAll.find(_.news.get.replaceAll("\\p{javaSpaceChar}", " ").trim.equalsIgnoreCase(news)).isEmpty) {
           logger debug "insert new entry from rss"
           createEntry(user, pubDateString, subject, news, baseURL)
         }
     }
   }
 
-  private def transformHtml2Markdown(content:String)={
+  private def transformHtml2Markdown(content: String) = {
     val options = Options.markdown()
     options.simpleLinkIds = false
     options.inlineLinks = true
@@ -141,54 +139,54 @@ class RSSImportActor extends Actor with Loggable {
 
   def createEntry(user: String, date: String, subject: String, news: String, baseURL: String) = {
 
-    /** search for coursenames in the title and remove it*/
-    def parseSubject(subject: String):String = {
+    /** search for coursenames in the title and remove it */
+    def parseSubject(subject: String): String = {
       val suffix = "[,:-]?[ ]?[,:-]?"
       val prefix = "[MBA]{2}"
 
-      val searchStrings = coursesWithAlias.keySet.par.flatMap{
-        course=>
+      val searchStrings = coursesWithAlias.keySet.par.flatMap {
+        course =>
 
-          coursesWithAlias(course).par.flatMap{
-            alias=>
-            semesterRange.map{
-              number=> alias + number
-            }
+          coursesWithAlias(course).par.flatMap {
+            alias =>
+              semesterRange.map {
+                number => alias + number
+              }
           }
       }.toList
 
-      var result: String = subject.replaceAll("\\p{javaSpaceChar}[-]","")
+      var result: String = subject.replaceAll("\\p{javaSpaceChar}[-]", "")
 
-      val coursesWithIndexes = searchStrings.map{
-        search=>
+      val coursesWithIndexes = searchStrings.map {
+        search =>
           val pattern = Pattern.compile(search, Pattern.CASE_INSENSITIVE)
           val matcher = pattern.matcher(result)
-          val index = if(matcher.find()) {
+          val index = if (matcher.find()) {
             matcher.start()
           }
-          else{
+          else {
             -1
           }
           (search, index)
-      }.filter{case (_,index) => index != -1  }.sortBy(_._2)
+      }.filter { case (_, index) => index != -1}.sortBy(_._2)
 
-      if(coursesWithIndexes.isEmpty){
+      if (coursesWithIndexes.isEmpty) {
         return subject
       }
 
-      var filterList = coursesWithIndexes.filter( _._1.matches(prefix) ).sortBy(_._2)
-      if(filterList.isEmpty){
+      var filterList = coursesWithIndexes.filter(_._1.matches(prefix)).sortBy(_._2)
+      if (filterList.isEmpty) {
         filterList = coursesWithIndexes
       }
 
-      val (_,firstIndex) = filterList.head
-      val (lastCourse,lastIndex) = filterList.last
-      val replaceString = result.substring(firstIndex, lastIndex + lastCourse.length )
-      result = result.replaceAll(replaceString,"").trim
+      val (_, firstIndex) = filterList.head
+      val (lastCourse, lastIndex) = filterList.last
+      val replaceString = result.substring(firstIndex, lastIndex + lastCourse.length)
+      result = result.replaceAll(replaceString, "").trim
       val suffixMatcher = Pattern.compile(suffix).matcher(result)
 
-      if(suffixMatcher.find() && suffixMatcher.start() <2 ){
-        result.replaceFirst(suffix,"").trim
+      if (suffixMatcher.find() && suffixMatcher.start() < 2) {
+        result.replaceFirst(suffix, "").trim
       } else {
         result
       }

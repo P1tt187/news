@@ -33,17 +33,21 @@
 package org.unsane.spirit.news
 package rest
 
-import org.unsane.spirit
-import net.liftweb.util.Helpers._
-import net.liftweb.json.JsonDSL._
-import net.liftweb.http.rest.RestHelper
-import net.liftweb.http._
-import net.liftweb.json
+import dispatch.Defaults._
+import dispatch._
 import net.liftweb.common.{Full, Loggable}
-import lib.Schedule
-import model.{ScheduleRecord, Entry}
+import net.liftweb.http._
+import net.liftweb.http.rest.RestHelper
+import net.liftweb.json
+import net.liftweb.json.JsonDSL._
+import net.liftweb.json.JsonParser
+import net.liftweb.util.Helpers._
+import org.unsane.spirit.news.lib.Schedule
+import org.unsane.spirit.news.model.Config
 
-object RestApi extends RestHelper with Loggable {
+import scala.concurrent.Await
+
+object RestApi extends RestHelper with Loggable with Config{
 
   logger info "Rest is now online."
 
@@ -171,6 +175,32 @@ object RestApi extends RestHelper with Loggable {
       }
 
       JsonResponse(Response.getSchedule(className,week), Nil, Nil, 200)
+    }
+
+      /**
+       * like count from socialmedia
+       * /sharrif/facebook-like
+       */
+    case "sharrif" :: "facebook-like" :: Nil Get req =>{
+
+      import net.liftweb.json.JsonDSL._
+
+import scala.concurrent.duration._
+
+      case class FacebookGraphResponse(likes: Int, id: String)
+
+      val fbPagename = loadProps("fbPagename", "fhs.spirit")
+
+      logger warn fbPagename
+
+      val param = Map("fields"->"likes")
+      val request = url("https://graph.facebook.com/"+ fbPagename) <<? param
+
+      val json = Await.result(Http( request OK as.String ),  Duration(10, SECONDS))
+      logger warn json
+      val likeCount = JsonParser.parse(json).extract[FacebookGraphResponse]
+      JsonResponse( "facebooklike" -> likeCount.likes ,Nil,Nil,200)
+
     }
 
   }
