@@ -184,8 +184,7 @@ object RestApi extends RestHelper with Loggable with Config {
     case "sharrif" :: "facebook-like" :: Nil Get req => {
 
       import net.liftweb.json.JsonDSL._
-
-import scala.concurrent.duration._
+      import scala.concurrent.duration._
 
       case class FacebookGraphResponse(likes: Int, id: String)
 
