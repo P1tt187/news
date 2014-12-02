@@ -8,15 +8,15 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ * notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
  *
  * 3. Neither the name of the author nor the names of his contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * may be used to endorse or promote products derived from this software
+ * without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -47,7 +47,7 @@ import org.unsane.spirit.news.model.Config
 
 import scala.concurrent.Await
 
-object RestApi extends RestHelper with Loggable with Config{
+object RestApi extends RestHelper with Loggable with Config {
 
   logger info "Rest is now online."
 
@@ -56,7 +56,7 @@ object RestApi extends RestHelper with Loggable with Config{
     /**
      * Rest Interface in order to put the JSON schedule into the DB.
      */
-    case "scheduleapi" :: "fileupload" ::  _ JsonPut jsonfile -> _ => {
+    case "scheduleapi" :: "fileupload" :: _ JsonPut jsonfile -> _ => {
       logger.warn("Fileupload is used. Please check if the Schedule is fine!")
       Schedule.import2DatabaseQueue(json.compact(json.render(jsonfile))) match {
         case true => JsonResponse(("upload" -> "true!"), Nil, Nil, 200)
@@ -65,15 +65,15 @@ object RestApi extends RestHelper with Loggable with Config{
 
     }
 
-     /**
-      * Get all News as JSON.
-      * Maybe preview ? => ?preview=true
-      * date filter, only if preview=true
-      * /rest/1.0/news
-      * @version 1.0
-      */
+    /**
+     * Get all News as JSON.
+     * Maybe preview ? => ?preview=true
+     * date filter, only if preview=true
+     * /rest/1.0/news
+     * @version 1.0
+     */
     case "rest" :: "1.0" :: "news" :: Nil Get req => {
-      if(req.param("preview").equals("true")) {
+      if (req.param("preview").equals("true")) {
         JsonResponse(Response.getPreviewNews(req.params), Nil, Nil, 200)
       } else {
         JsonResponse(Response.getAllNews(req.params), Nil, Nil, 200)
@@ -109,7 +109,7 @@ object RestApi extends RestHelper with Loggable with Config{
         case _ => ""
       }
 
-      JsonResponse(Response.getSchedule(className,week), Nil, Nil, 200)
+      JsonResponse(Response.getSchedule(className, week), Nil, Nil, 200)
     }
 
     /**
@@ -174,14 +174,14 @@ object RestApi extends RestHelper with Loggable with Config{
         case _ => ""
       }
 
-      JsonResponse(Response.getSchedule(className,week), Nil, Nil, 200)
+      JsonResponse(Response.getSchedule(className, week), Nil, Nil, 200)
     }
 
-      /**
-       * like count from socialmedia
-       * /sharrif/facebook-like
-       */
-    case "sharrif" :: "facebook-like" :: Nil Get req =>{
+    /**
+     * like count from socialmedia
+     * /sharrif/facebook-like
+     */
+    case "sharrif" :: "facebook-like" :: Nil Get req => {
 
       import net.liftweb.json.JsonDSL._
 
@@ -191,15 +191,13 @@ import scala.concurrent.duration._
 
       val fbPagename = loadProps("fbPagename", "fhs.spirit")
 
-      logger warn fbPagename
+      val param = Map("fields" -> "likes")
+      val request = url("https://graph.facebook.com/" + fbPagename) <<? param
 
-      val param = Map("fields"->"likes")
-      val request = url("https://graph.facebook.com/"+ fbPagename) <<? param
+      val json = Await.result(Http(request OK as.String), Duration(10, SECONDS))
 
-      val json = Await.result(Http( request OK as.String ),  Duration(10, SECONDS))
-      logger warn json
       val likeCount = JsonParser.parse(json).extract[FacebookGraphResponse]
-      JsonResponse( "facebooklike" -> likeCount.likes ,Nil,Nil,200)
+      JsonResponse("facebooklike" -> likeCount.likes, Nil, Nil, 200)
 
     }
 
