@@ -66,7 +66,7 @@ object User extends User with MetaMegaProtoUser[User] with LDAPAuth with Config 
   override def menus: List[Menu] = sitemap
   override lazy val sitemap: List[Menu] = List(loginMenuLoc, logoutMenuLoc).flatten(a => a)
   override def loginXhtml = {
-    (<lift:surround with="default_login" at ="content">
+    <lift:surround with="default_login" at ="content">
       <h3>{"Derzeit ist der Login nur für Mitarbeiter!"}</h3>
       <form method="post" action={S.uri} name="login">
       <table>
@@ -79,7 +79,7 @@ object User extends User with MetaMegaProtoUser[User] with LDAPAuth with Config 
       <script type="text/javascript" language="JavaScript">
         document.forms['login'].elements['username'].focus();
       </script>
-     </lift:surround>)
+     </lift:surround>
   }
 
   /**

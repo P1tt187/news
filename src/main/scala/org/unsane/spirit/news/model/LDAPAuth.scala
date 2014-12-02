@@ -8,15 +8,15 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ * notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
  *
  * 3. Neither the name of the author nor the names of his contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * may be used to endorse or promote products derived from this software
+ * without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -42,32 +42,49 @@ import scala.collection.JavaConversions._
 
 trait LDAPAuth extends Loggable with Config {
   private val useLDAPAuth = loadProps("Productive") == "yes" || loadProps("UseLDAPAuth") == "yes"
-  private val env = new Hashtable[String,String]
+  private val developmentMode = loadProps("Development") == "yes"
+  private val env = new Hashtable[String, String]
 
   def tryLogin(userName: String, passWord: String): Boolean = {
     // allow additional users in setting.properties
-    val additionalUsers = loadProps("users").split(';').map{_.trim}
-    if (additionalUsers contains userName) {
-      logger info "found "+userName+" in additional users."
-      val userInfo = loadProps(userName).split(';').map{_.trim}
-      if (userInfo.length >= 3) {
-        if (userInfo(2) == md5SumString(passWord)) {
-          S.setSessionAttribute("fullname", userInfo(0))
-          S.setSessionAttribute("email", userInfo(1))
-          logger info "password is fine for "+userInfo(0)+
-                " <"+userInfo(1)+">"
-          return true
-        }
-      }
-    }
+    if (trySettingsLogin(userName, passWord)) {
+      true
+    } else
     if (useLDAPAuth) {
       tryLoginLDAP(userName, passWord)
     }
-    else {
+    else if (developmentMode) {
       S.setSessionAttribute("fullname", userName)
       S.setSessionAttribute("email", "testuser@nonvalid")
       true
+    } else {
+      false
     }
+  }
+
+  private def trySettingsLogin(userName: String, passWord: String): Boolean = {
+    val additionalUsers = loadProps("users").split(';').map {
+      _.trim
+    }
+    if (additionalUsers contains userName) {
+      logger info "found " + userName + " in additional users."
+      val userInfo = loadProps(userName).split(';').map {
+        _.trim
+      }
+      if (userInfo.length >= 3) {
+        if (userInfo(2).trim.equals(md5SumString(passWord).trim) ) {
+          S.setSessionAttribute("fullname", userInfo(0))
+          S.setSessionAttribute("email", userInfo(1))
+          logger info "password is fine for " + userInfo(0) +
+            " <" + userInfo(1) + ">"
+          return true
+        } else {
+          logger debug "po: " + userInfo(2).length
+          logger debug "pc: " + md5SumString(passWord).length
+        }
+      }
+    }
+    false
   }
 
   /**
@@ -77,12 +94,12 @@ trait LDAPAuth extends Loggable with Config {
    * @return Boolean
    */
   def tryLoginLDAP(
-    userName: String,
-     passWord: String
-  ): Boolean = {
+                    userName: String,
+                    passWord: String
+                    ): Boolean = {
     logger warn userName + " is trying to log into zefi!"
     val ldapURL = "ldaps://zefi.fh-schmalkalden.de:636"
-    val dn =  "uid="+userName+",ou=people,ou=in,dc=fh-schmalkalden,dc=de"
+    val dn = "uid=" + userName + ",ou=people,ou=in,dc=fh-schmalkalden,dc=de"
 
     env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory")
     env.put(Context.PROVIDER_URL, ldapURL)
@@ -96,7 +113,7 @@ trait LDAPAuth extends Loggable with Config {
       val ctx: DirContext = new InitialDirContext(env)
       val attrs: Attributes = ctx.getAttributes(dn)
       val gidNumber = attrs.get("gidNumber").get(0)
-        // only staff can log in
+      // only staff can log in
       if (gidNumber != "1001" && !allowedStudents.contains(userName)) {
         S error "Students may not log in. Sorry!"
         S redirectTo "/user_mgt/login"
@@ -108,10 +125,10 @@ trait LDAPAuth extends Loggable with Config {
       true
     } catch {
       case e: AuthenticationException =>
-          logger error e.printStackTrace.toString
-          S error "Error: Bitte richtige FHS-ID und Passwort angeben"
-          S redirectTo "/user_mgt/login"
-          false
+        logger error e.printStackTrace.toString
+        S error "Error: Bitte richtige FHS-ID und Passwort angeben"
+        S redirectTo "/user_mgt/login"
+        false
       case b: NamingException =>
         logger error b.printStackTrace.toString
         logger error b.getExplanation
@@ -132,14 +149,14 @@ trait LDAPAuth extends Loggable with Config {
   /**
    * Checks if we have to build "fhsid@fh-sm.de" or if there was found an _.____@fh-sm.de
    * @todo If the String is emtpy, we need to return an not-valid String in order to disable
-   * the email function. How should this be solved?
-   * This is only a quickfix, should be fixed a more proper way in the future!!!!!
+   *       the email function. How should this be solved?
+   *       This is only a quickfix, should be fixed a more proper way in the future!!!!!
    */
-  private def emailValidator(email: String, userName:String, gidNumber: String): String = (email, gidNumber) match {
+  private def emailValidator(email: String, userName: String, gidNumber: String): String = (email, gidNumber) match {
     case ("", "1002") => userName + "@stud.fh-sm.de"
     case ("", "1001") => userName + "@fh-sm.de"
-    case ("", _)      => "not-valid"
-    case _            => email
+    case ("", _) => "not-valid"
+    case _ => email
   }
 
   /**
@@ -152,12 +169,14 @@ trait LDAPAuth extends Loggable with Config {
     def getAttrValList(id: String): List[String] =
       if (ids contains id)
         for (i <- 0 to attrs.get(id).size - 1)
-          yield attrs.get(id).get(i).toString
+        yield attrs.get(id).get(i).toString
       else
         Nil: List[String]
-    val emails = getAttrValList("mail") map { _.toString } filter {
+    val emails = getAttrValList("mail") map {
+      _.toString
+    } filter {
       email => email.matches("[a-zA-Z][.].\\w.*@fh-sm.de") ||
-               email.matches("[a-zA-Z][.].\\w.*@stud.fh-sm.de")
+        email.matches("[a-zA-Z][.].\\w.*@stud.fh-sm.de")
     }
     if (emails isEmpty) "" else emails.head
   }
