@@ -34,18 +34,15 @@ package org.unsane.spirit.news
 package snippet
 
 
-import net.liftweb.util.PCDataXmlParser
+import net.liftweb.common.{Full, Loggable}
+import net.liftweb.http.js.{JE, JsExp}
+import net.liftweb.http.{S, SHtml}
+import net.liftweb.json.JsonDSL._
+import net.liftweb.markdown._
+import net.liftweb.util.Helpers._
+import org.unsane.spirit.news.model.{Config, Entry}
 
 import scala.xml._
-import net.liftweb.util.Helpers._
-
-import net.liftweb.markdown._
-
-import net.liftweb.json.JsonDSL._
-import model.{Config, Entry}
-import net.liftweb.common.{Empty, Box, Full, Loggable}
-import net.liftweb.http.{SHtml, S}
-import net.liftweb.http.js.{JE,JsExp}
 
 /**
  * @author Marcus Denison
@@ -107,7 +104,7 @@ class ViewNews extends SpiritHelpers with Loggable with Config {
    ".entry" #> news.map( entry =>
      ".writer"    #> entry.writer.value.toString &
      ".subject"   #> <a href={"/entry/"+entry.nr.value.toString}>
-                     {entry.subject.value.toString}</a> &
+                     { mkXMLHeader( ActuariusApp(entry.subject.value.toString))}</a> &
      ".nr"        #> entry.nr.value.toString &
      ".lifecycle" #> entry.lifecycle.value.toString &
      ".date"      #> Text(entry.date.value.replaceAll("[+]0100","").trim) &
