@@ -96,7 +96,7 @@ class RSSImportActor extends Actor with Loggable {
         //val news = item.getDescriptionAsHTML.replaceAll("mailto:", "") //.replaceAll("<br />", "\n").replaceAll("<li>", "* ").replaceAll("</li>", "\n")
         val news = transformHtml2Markdown(correctNews(item.getDescriptionAsHTML).replaceAll("\\p{javaSpaceChar}", " ").trim)
 
-        val pubDateString = item.getElementValue("", "pubDate").split(",")(1)
+        val pubDateString = item.getElementValue("", "pubDate")
         val baseURL = item.getLink.toString
 
         if (Entry.findAll.find(_.news.get.replaceAll("\\p{javaSpaceChar}", " ").trim.equalsIgnoreCase(news)).isEmpty) {
