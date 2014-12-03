@@ -109,7 +109,7 @@ class ViewNews extends SpiritHelpers with Loggable with Config {
      ".lifecycle" #> entry.lifecycle.value.toString &
      ".date"      #> Text(entry.date.value.replaceAll("[+]0100","").trim) &
      ".semester"  #> sem2link(semesterChanger(entry.semester.value.toString).split(" ")) &
-     ".news"      #> mkXMLHeader(ActuariusApp(entry.news.value))
+     ".news"      #> mkXMLHeader(ActuariusApp(entry.news.value + "\n\n[Quelle](" + entry.baseUrl + ")"))
      //".news"      #> TextileParser.toHtml(entry.news.value.toString)
    )
 
