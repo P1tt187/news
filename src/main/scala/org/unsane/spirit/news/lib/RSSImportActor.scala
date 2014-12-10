@@ -10,10 +10,13 @@ import com.overzealous.remark.{Options, Remark}
 import dispatch.Defaults._
 import dispatch._
 import it.sauronsoftware.feed4j.FeedParser
+import net.liftweb.common.{Full, Loggable}
+import org.apache.commons.lang3.StringEscapeUtils
 import net.liftweb.common.Loggable
 import org.unsane.spirit.news.lib.RSSReader._
 import org.unsane.spirit.news.model.Entry
 import org.unsane.spirit.news.snippet.CRUDEntry
+import com.overzealous.remark.{Options, Remark}
 
 import scala.actors.Actor
 import scala.util.{Failure, Success}
@@ -102,7 +105,22 @@ class RSSImportActor extends Actor with Loggable {
         if (Entry.findAll.find(_.news.get.replaceAll("\\p{javaSpaceChar}", " ").trim.equalsIgnoreCase(news)).isEmpty) {
           logger debug "insert new entry from rss"
           createEntry(user, pubDateString, subject, news, baseURL)
-        }
+        } else {
+          Entry.findAll.find(_.baseUrl.get.trim.equals(baseURL)) match {
+            case Some(existingEntry) =>
+              val CrudUpdate = new CRUDEntry
+              CrudUpdate.CurrentEntry(Full(existingEntry))
+              CrudUpdate.tweetUpdate = true
+              val expireDate = Calendar.getInstance()
+              expireDate.add(Calendar.DAY_OF_YEAR, 30)
+              CrudUpdate.CrudEntry.lifecycle.set(lifecycleFormat.format(expireDate.getTime))
+              CrudUpdate.CrudEntry.news.set(news)
+              CrudUpdate.update()
+            case _=>
+          }
+
+          }
+
     }
   }
 
