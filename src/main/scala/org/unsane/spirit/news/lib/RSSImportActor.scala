@@ -177,31 +177,11 @@ class RSSImportActor extends Actor with Loggable {
     val suffix = "[,:-]?[ ]?[,:-]?"
     val prefix = "[MBA]{2}"
 
-    val searchStrings = coursesWithAlias.keySet.par.flatMap {
-      course =>
+    val extractCoursesResult: (String, List[(String, Int)]) = extractCourses(subject)
+    var result: String = extractCoursesResult._1
+    val coursesWithIndexes: List[(String, Int)] = extractCoursesResult._2
 
-        coursesWithAlias(course).par.flatMap {
-          alias =>
-            semesterRange.map {
-              number => alias + number
-            }
-        }
-    }.toList
 
-    var result: String = subject.replaceAll("\\p{javaSpaceChar}[-]", "")
-
-    val coursesWithIndexes = searchStrings.map {
-      search =>
-        val pattern = Pattern.compile(search, Pattern.CASE_INSENSITIVE)
-        val matcher = pattern.matcher(result)
-        val index = if (matcher.find()) {
-          matcher.start()
-        }
-        else {
-          -1
-        }
-        (search, index)
-    }.filter { case (_, index) => index != -1}.sortBy(_._2)
 
     if (coursesWithIndexes.isEmpty) {
       return subject
@@ -224,6 +204,35 @@ class RSSImportActor extends Actor with Loggable {
       result
     }
 
+  }
+
+  def extractCourses(subject: String): (String, List[(String, Int)]) = {
+    val searchStrings = coursesWithAlias.keySet.par.flatMap {
+      course =>
+
+        coursesWithAlias(course).par.flatMap {
+          alias =>
+            semesterRange.map {
+              number => alias + number
+            }
+        }
+    }.toList
+
+    val result: String = subject.replaceAll("\\p{javaSpaceChar}[-]", "")
+
+    val coursesWithIndexes = searchStrings.map {
+      search =>
+        val pattern = Pattern.compile(search, Pattern.CASE_INSENSITIVE)
+        val matcher = pattern.matcher(result)
+        val index = if (matcher.find()) {
+          matcher.start()
+        }
+        else {
+          -1
+        }
+        (search, index)
+    }.filter { case (_, index) => index != -1}.sortBy(_._2)
+    (result, coursesWithIndexes)
   }
 
   def createEntry(user: String, date: String, subject: String, news: String, baseURL: String) = {
@@ -250,18 +259,25 @@ class RSSImportActor extends Actor with Loggable {
   }
 
   def extractSemester(subject: String, news: String): String = {
+
     val changedSemester = new mutable.StringBuilder
 
     val parts = subject.replaceAll("[():,.-]", " ").trim.toUpperCase.split(" ") ++ news.replaceAll("[():,.]", " ").trim.toUpperCase.split(" ")
 
-    val theCourses = parts.toSet.flatMap {
+
+    val theCourses = (parts.toSet.flatMap {
       p: String =>
         allSemesterAsList4News.filter(sem => p.equalsIgnoreCase(sem) || p.equalsIgnoreCase("BA" + sem))
-    }.toList.sorted
+    } ++ extractCourses(subject)._2.map(_._1)).toList.sorted
+
+
+
     changedSemester.append(theCourses.mkString(" "))
     if (changedSemester.toString.trim.isEmpty) {
       changedSemester append "semester alte_semester"
     }
+
+   // logger debug "Extracted Semester " + changedSemester.toString()
     changedSemester.toString()
   }
 }
