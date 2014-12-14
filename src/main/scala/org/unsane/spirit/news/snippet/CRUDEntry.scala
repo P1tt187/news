@@ -120,7 +120,7 @@ class CRUDEntry extends Loggable with SpiritHelpers with Config with EntryPrevie
     if(CrudEntry.date.get.isEmpty) {
       CrudEntry.date.set(date)
     }
-    CrudEntry.name.set(User.currentUserId.openOr("Oops!"))
+    CrudEntry.name.set(User.currentUserId.openOr("rss"))
     if(CrudEntry.semester.get.isEmpty) {
       CrudEntry.semester.set(changedSemester)
     }
@@ -139,7 +139,7 @@ class CRUDEntry extends Loggable with SpiritHelpers with Config with EntryPrevie
     count.counter.set((nr.toInt + 1).toString)
     count.save
 
-    logger info "Entry was created by " + User.currentUserId.openOr("")
+    logger info "Entry was created by " + User.currentUserId.openOr("rss")
     if (sendEmail && changedSemester.nonEmpty) {
       logger info "News should be sent via eMail!"
       MailHandler.send(TextileParser.toHtml(CrudEntry.news.value.toString).toString, CrudEntry.subject.value, loadEmails(changedSemester.split(" ")))
@@ -163,11 +163,22 @@ class CRUDEntry extends Loggable with SpiritHelpers with Config with EntryPrevie
         else EntryCounter.findAll.head.counter.toString
       }
       else oldNr
-
-    CrudEntry.date.set(date)
-    CrudEntry.semester.set(changedSemester)
+    if(CrudEntry.date.get.isEmpty) {
+      CrudEntry.date.set(date)
+    }
+    if(CrudEntry.semester.get.isEmpty) {
+      CrudEntry.semester.set(changedSemester)
+    }
     //CrudEntry.name.set(User.currentUserId.openOr("Oops!"))
     CrudEntry.nr.set(newNr)
+    if (CrudEntry.subject.value.trim.isEmpty) {
+      CrudEntry.subject.set((
+        CrudEntry.news.value./:(("", 0)) { (o, i) =>
+          if (o._2 > 20) o
+          else (o._1 + i, o._2 + 1)
+        }._1 + "...").replace("\n", " "))
+      logger warn "Setting subject cause it was empty!"
+    }
     CrudEntry.save(true)
 
     if (newNr != oldNr) {
@@ -179,7 +190,7 @@ class CRUDEntry extends Loggable with SpiritHelpers with Config with EntryPrevie
     }
 
     logger info "Semesters: " + changedSemester
-    logger info "Entry was updated by " + User.currentUserId.openOr("")
+    logger info "Entry was updated by " + User.currentUserId.openOr("rss")
     if (sendEmail) MailHandler.send(TextileParser.toHtml(CrudEntry.news.value).toString,
       "[Update] " + CrudEntry.subject.value, loadEmails(changedSemester split (" ")))
     if (tweet && tweetUpdate) Spreader ! Tweet("[Update] " + CrudEntry.subject.value, changedSemester.split(" ").map(" #" + _).mkString, newNr)

@@ -14,11 +14,12 @@ import net.liftweb.common.{Full, Loggable}
 import org.apache.commons.lang3.StringEscapeUtils
 import net.liftweb.common.Loggable
 import org.unsane.spirit.news.lib.RSSReader._
-import org.unsane.spirit.news.model.Entry
+import org.unsane.spirit.news.model.{User, Entry}
 import org.unsane.spirit.news.snippet.CRUDEntry
 import com.overzealous.remark.{Options, Remark}
 
 import scala.actors.Actor
+import scala.collection.mutable
 import scala.util.{Failure, Success}
 
 /**
@@ -78,7 +79,6 @@ class RSSImportActor extends Actor with Loggable {
 
   private def parseFeed(tmpFile: File) = {
 
-
     val feed = FeedParser.parse(tmpFile.toURI.toURL)
 
     val maxResults = if (feed.getItemCount > 50) {
@@ -94,6 +94,11 @@ class RSSImportActor extends Actor with Loggable {
 
     items.foreach {
       item =>
+
+        def newsTextEqual(entry: Entry, news: String): Boolean = {
+          entry.news.get.replaceAll("\\p{javaSpaceChar}", " ").trim.equalsIgnoreCase(news)
+        }
+
         val user = item.getElementValue(DOM_URL, "contributor")
         val subject = item.getTitle
         //val news = item.getDescriptionAsHTML.replaceAll("mailto:", "") //.replaceAll("<br />", "\n").replaceAll("<li>", "* ").replaceAll("</li>", "\n")
@@ -102,26 +107,41 @@ class RSSImportActor extends Actor with Loggable {
         val pubDateString = item.getElementValue("", "pubDate")
         val baseURL = item.getLink.toString
 
-        if (Entry.findAll.find(_.news.get.replaceAll("\\p{javaSpaceChar}", " ").trim.equalsIgnoreCase(news)).isEmpty) {
+        if (Entry.findAll.find(newsTextEqual(_, news)).isEmpty) {
           logger debug "insert new entry from rss"
           createEntry(user, pubDateString, subject, news, baseURL)
         } else {
-          Entry.findAll.find(_.baseUrl.get.trim.equals(baseURL)) match {
+          Entry.findAll.find(_.baseUrl.get.trim.equals(baseURL.trim)) match {
             case Some(existingEntry) =>
-              val CrudUpdate = new CRUDEntry
-              CrudUpdate.CurrentEntry(Full(existingEntry))
-              CrudUpdate.tweetUpdate = true
-              val expireDate = Calendar.getInstance()
-              expireDate.add(Calendar.DAY_OF_YEAR, 30)
-              CrudUpdate.CrudEntry.lifecycle.set(lifecycleFormat.format(expireDate.getTime))
-              CrudUpdate.CrudEntry.news.set(news)
-              CrudUpdate.update()
-            case _=>
+              if (!newsTextEqual(existingEntry, news)) {
+                updateNewsEntry(subject, news, pubDateString, existingEntry)
+              }
+            case _ =>
           }
 
-          }
+        }
 
     }
+  }
+
+  def updateNewsEntry(subject: String, news: String, pubDateString: String, existingEntry: Entry) {
+    val CrudUpdate = new CRUDEntry
+    val updateEntry = CrudUpdate.CrudEntry
+    updateEntry.baseUrl.set(existingEntry.baseUrl.get)
+    updateEntry.nr.set(existingEntry.nr.get)
+
+    updateEntry.subject.set(parseSubject(subject))
+    updateEntry.writer.set(existingEntry.writer.get)
+    updateEntry.name.set(existingEntry.name.get)
+    updateEntry.semester.set(extractSemester(subject, news))
+    updateEntry.date.set(pubDateString)
+
+    CrudUpdate.tweetUpdate = true
+    val expireDate = Calendar.getInstance()
+    expireDate.add(Calendar.DAY_OF_YEAR, 30)
+    CrudUpdate.CrudEntry.lifecycle.set(lifecycleFormat.format(expireDate.getTime))
+    CrudUpdate.CrudEntry.news.set(news)
+    CrudUpdate.update()
   }
 
   private def transformHtml2Markdown(content: String) = {
@@ -155,61 +175,62 @@ class RSSImportActor extends Actor with Loggable {
     result
   }
 
+  /** search for coursenames in the title and remove it */
+  def parseSubject(subject: String): String = {
+    val suffix = "[,:-]?[ ]?[,:-]?"
+    val prefix = "[MBA]{2}"
+
+    val searchStrings = coursesWithAlias.keySet.par.flatMap {
+      course =>
+
+        coursesWithAlias(course).par.flatMap {
+          alias =>
+            semesterRange.map {
+              number => alias + number
+            }
+        }
+    }.toList
+
+    var result: String = subject.replaceAll("\\p{javaSpaceChar}[-]", "")
+
+    val coursesWithIndexes = searchStrings.map {
+      search =>
+        val pattern = Pattern.compile(search, Pattern.CASE_INSENSITIVE)
+        val matcher = pattern.matcher(result)
+        val index = if (matcher.find()) {
+          matcher.start()
+        }
+        else {
+          -1
+        }
+        (search, index)
+    }.filter { case (_, index) => index != -1}.sortBy(_._2)
+
+    if (coursesWithIndexes.isEmpty) {
+      return subject
+    }
+
+    var filterList = coursesWithIndexes.filter(_._1.matches(prefix)).sortBy(_._2)
+    if (filterList.isEmpty) {
+      filterList = coursesWithIndexes
+    }
+
+    val (_, firstIndex) = filterList.head
+    val (lastCourse, lastIndex) = filterList.last
+    val replaceString = result.substring(firstIndex, lastIndex + lastCourse.length)
+    result = result.replaceAll(replaceString, "").trim
+    val suffixMatcher = Pattern.compile(suffix).matcher(result)
+
+    if (suffixMatcher.find() && suffixMatcher.start() < 2) {
+      result.replaceFirst(suffix, "").trim
+    } else {
+      result
+    }
+
+  }
+
   def createEntry(user: String, date: String, subject: String, news: String, baseURL: String) = {
 
-    /** search for coursenames in the title and remove it */
-    def parseSubject(subject: String): String = {
-      val suffix = "[,:-]?[ ]?[,:-]?"
-      val prefix = "[MBA]{2}"
-
-      val searchStrings = coursesWithAlias.keySet.par.flatMap {
-        course =>
-
-          coursesWithAlias(course).par.flatMap {
-            alias =>
-              semesterRange.map {
-                number => alias + number
-              }
-          }
-      }.toList
-
-      var result: String = subject.replaceAll("\\p{javaSpaceChar}[-]", "")
-
-      val coursesWithIndexes = searchStrings.map {
-        search =>
-          val pattern = Pattern.compile(search, Pattern.CASE_INSENSITIVE)
-          val matcher = pattern.matcher(result)
-          val index = if (matcher.find()) {
-            matcher.start()
-          }
-          else {
-            -1
-          }
-          (search, index)
-      }.filter { case (_, index) => index != -1}.sortBy(_._2)
-
-      if (coursesWithIndexes.isEmpty) {
-        return subject
-      }
-
-      var filterList = coursesWithIndexes.filter(_._1.matches(prefix)).sortBy(_._2)
-      if (filterList.isEmpty) {
-        filterList = coursesWithIndexes
-      }
-
-      val (_, firstIndex) = filterList.head
-      val (lastCourse, lastIndex) = filterList.last
-      val replaceString = result.substring(firstIndex, lastIndex + lastCourse.length)
-      result = result.replaceAll(replaceString, "").trim
-      val suffixMatcher = Pattern.compile(suffix).matcher(result)
-
-      if (suffixMatcher.find() && suffixMatcher.start() < 2) {
-        result.replaceFirst(suffix, "").trim
-      } else {
-        result
-      }
-
-    }
 
     val CrudEntry = new CRUDEntry
 
@@ -221,7 +242,18 @@ class RSSImportActor extends Actor with Loggable {
     expireDate.add(Calendar.MONTH, 3)
     CrudEntry.CrudEntry.lifecycle.set(lifecycleFormat.format(expireDate.getTime))
 
-    val changedSemester = new StringBuilder
+    val changedSemester: String = extractSemester(subject, news)
+
+
+    CrudEntry.CrudEntry.semester.set(changedSemester.toString.trim)
+    CrudEntry.CrudEntry.writer.set(user)
+    CrudEntry.CrudEntry.subject.set(parseSubject(parseSubject(subject)))
+    CrudEntry.CrudEntry.news.set(news)
+    CrudEntry.create()
+  }
+
+  def extractSemester(subject: String, news: String): String = {
+    val changedSemester = new mutable.StringBuilder
 
     val parts = subject.replaceAll("[():,.-]", " ").trim.toUpperCase.split(" ") ++ news.replaceAll("[():,.]", " ").trim.toUpperCase.split(" ")
 
@@ -233,15 +265,8 @@ class RSSImportActor extends Actor with Loggable {
     if (changedSemester.toString.trim.isEmpty) {
       changedSemester append "semester alte_semester"
     }
-
-
-    CrudEntry.CrudEntry.semester.set(changedSemester.toString.trim)
-    CrudEntry.CrudEntry.writer.set(user)
-    CrudEntry.CrudEntry.subject.set(parseSubject(parseSubject(subject)))
-    CrudEntry.CrudEntry.news.set(news)
-    CrudEntry.create()
+    changedSemester.toString()
   }
-
 }
 
 case object Stop
