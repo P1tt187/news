@@ -107,7 +107,7 @@ class RSSImportActor extends Actor with Loggable {
         val pubDateString = item.getElementValue("", "pubDate")
         val baseURL = item.getLink.toString
 
-        Entry.findAll.find(_.baseUrl.get.trim.equals(baseURL.trim)) match {
+        Entry.findAll.find(_.baseUrl.value.trim.equals(baseURL.trim)) match {
           case Some(existingEntry) =>
             if (!newsTextEqual(existingEntry, news)) {
               updateNewsEntry(subject, news, pubDateString, existingEntry)
@@ -127,7 +127,7 @@ class RSSImportActor extends Actor with Loggable {
     updateEntry.baseUrl.set(existingEntry.baseUrl.get)
     updateEntry.nr.set(existingEntry.nr.get)
 
-    updateEntry.subject.set("[update] " + parseSubject(subject))
+    updateEntry.subject.set(parseSubject(subject))
     updateEntry.writer.set(existingEntry.writer.get)
     updateEntry.name.set(existingEntry.name.get)
     updateEntry.semester.set(extractSemester(subject, news))
@@ -138,6 +138,7 @@ class RSSImportActor extends Actor with Loggable {
     expireDate.add(Calendar.DAY_OF_YEAR, 30)
     CrudUpdate.CrudEntry.lifecycle.set(lifecycleFormat.format(expireDate.getTime))
     CrudUpdate.CrudEntry.news.set(news)
+
     CrudUpdate.update()
   }
 
