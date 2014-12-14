@@ -138,7 +138,7 @@ class RSSImportActor extends Actor with Loggable {
     expireDate.add(Calendar.DAY_OF_YEAR, 30)
     CrudUpdate.CrudEntry.lifecycle.set(lifecycleFormat.format(expireDate.getTime))
     CrudUpdate.CrudEntry.news.set(news)
-
+    existingEntry.delete_!
     CrudUpdate.update()
   }
 
