@@ -130,7 +130,7 @@ class RSSImportActor extends Actor with Loggable {
     updateEntry.baseUrl.set(existingEntry.baseUrl.get)
     updateEntry.nr.set(existingEntry.nr.get)
 
-    updateEntry.subject.set(parseSubject(subject))
+    updateEntry.subject.set("[update] "+parseSubject(subject))
     updateEntry.writer.set(existingEntry.writer.get)
     updateEntry.name.set(existingEntry.name.get)
     updateEntry.semester.set(extractSemester(subject, news))
