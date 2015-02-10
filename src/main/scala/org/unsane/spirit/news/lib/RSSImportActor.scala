@@ -60,10 +60,7 @@ class RSSImportActor extends Actor with Loggable {
               logger error errorMessage
 
               tmpFile.delete()
-
           }
-
-
 
           Thread.sleep(TimeUnit.MINUTES.toMillis(1))
           this ! Next
@@ -182,8 +179,6 @@ class RSSImportActor extends Actor with Loggable {
     var result: String = extractCoursesResult._1
     val coursesWithIndexes: List[(String, Int)] = extractCoursesResult._2
 
-
-
     if (coursesWithIndexes.isEmpty) {
       return subject
     }
@@ -217,7 +212,7 @@ class RSSImportActor extends Actor with Loggable {
               number => alias + number
             }
         }
-    }.toList
+    }.toList ++ coursesWithAlias.keySet // add course list to extract it from title
 
     val result: String = subject.replaceAll("\\p{javaSpaceChar}[-]", "")
 
