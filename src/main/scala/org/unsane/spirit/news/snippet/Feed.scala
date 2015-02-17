@@ -35,6 +35,7 @@ package snippet
 
 import net.liftweb.http._
 import net.liftweb.http.rest._
+import net.liftweb.markdown.ActuariusApp
 import org.unsane.spirit.news.model.Entry
 import net.liftmodules.textile._
 
@@ -74,15 +75,13 @@ object Feed extends RestHelper with SpiritHelpers {
 			 { news.map { entry =>
          <item>
            <title>
-             {entry.subject.value}
-             (
-             {semesterChanger(entry.semester.value)}
-             )</title>
+             {entry.subject.value} {semesterChanger(entry.semester.value).split(" ").map("#" + _).mkString(" ")}
+             </title>
            <author>
              {entry.writer.value}
            </author>
            <description>
-             {TextileParser.toHtml(entry.news.value).toString}
+             {ActuariusApp(entry.news.value).toString}
            </description>
            <link>
              {url}/entry/{entry.nr.value}
