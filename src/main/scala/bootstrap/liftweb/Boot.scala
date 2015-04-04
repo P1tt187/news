@@ -161,7 +161,8 @@ class Boot extends Loggable with Config {
           Menu(Loc("Master", List("stundenplan", "MaI" + loadProps("Semester")), "MaI"),
             Menu(Loc("MA_1", List("stundenplan", schedule_ma(0)), schedule_ma(0), LocGroup("Master"))),
             Menu(Loc("MA_2", List("stundenplan", schedule_ma(1)), schedule_ma(1), LocGroup("Master"), onlyWS))),
-          Menu(Loc("Groups", List("groups"), "Gruppen")),
+          //Menu(Loc("Groups", List("groups"), "Gruppen")),
+          Menu(Loc("Groups", List("displaygroups"), "Gruppen")),
           Menu(Loc("Blocks", List("blocks"), "Blöcke", Hidden)),
           Menu(Loc("ExtBlocks", ExtLink("/blocks"), "Blöcke")),
           Menu(Loc("Abkuerzungen", List("stundenplan", "abkuerzungen"), "Abkuerzungen")),
@@ -185,7 +186,8 @@ class Boot extends Loggable with Config {
       Menu(Loc("editieren", Link(List("edit"), true, "/edit/editieren"), "Editieren", loggedIn)) ::
       Menu(Loc("ScheduleMgt", List("scheduleAdmin", "index"), "Std. Plan Verwaltung", adminLoggedIn)) ::
       Menu(Loc("schedule", List("schedule"), "schedule", Hidden),
-        Menu(Loc("GroupsNew", List("schedule", "groups"), "Gruppen")),
+       // Menu(Loc("GroupsNew", List("schedule", "groups"), "Gruppen")),
+        Menu(Loc("GroupsNew", List("schedule", "displaygroups"), "Gruppen")),
         Menu(Loc("BlocksNew", List("schedule", "blocks"), "Blöcke", Hidden)),
         Menu(Loc("ExtBlocksNew", ExtLink("/schedule/blocks"), "Blöcke")),
         Menu(Loc("AbkuerzungenNew", List("schedule", "abkuerzungen"), "Abkuerzungen"))) ::

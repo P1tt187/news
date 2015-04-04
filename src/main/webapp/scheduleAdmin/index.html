@@ -1,29 +1,33 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta content="text/html; charset=UTF-8" http-equiv="content-type" />
+<head>
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
     <title>Aktuelles</title>
-  </head>
-  <body class="lift:content_id=main">
-    <div id="main" class="lift:surround?with=default;at=content">
-        <form class="lift:ScheduleParser">
-           <h2>Stundenplan Ansicht w&auml;hlen:</h2>
-           <div id="hint2">
-               <br />
-               Neuer Stundenplan: Aktiviert die Ansicht ohne iFrames!<br />
-               Alter Stundenplan: Aktiviert die Ansicht mit iFrames!
-               <br />
-               <br />
-               <h4>!! HINWEIS: Beim &auml;ndern des Dropdowns wird der Wert sofort
-                   <br />gespeichert und somit die Ansicht ge&auml;ndert !!</h4>
-           </div>
+</head>
+<body class="lift:content_id=main">
+<div id="main" class="lift:surround?with=default;at=content">
+    <form class="lift:ScheduleParser">
+        <h2>Stundenplan Ansicht w&auml;hlen:</h2>
 
-           <div name="scheduleSwitch" id="scheduleSwitch"></div>
+        <div id="hint2">
+            <br/>
+            Neuer Stundenplan: Aktiviert die Ansicht ohne iFrames!<br/>
+            Alter Stundenplan: Aktiviert die Ansicht mit iFrames!
+            <br/>
+            <br/>
+            <h4>!! HINWEIS: Beim &auml;ndern des Dropdowns wird der Wert sofort
+                <br/>gespeichert und somit die Ansicht ge&auml;ndert !!</h4>
+        </div>
 
-       </form>
-        <div data-lift="ScheduleParser.shortCutButton">
+        <div name="scheduleSwitch" id="scheduleSwitch"></div>
+
+    </form>
+    <div data-lift="ScheduleParser.shortCutButton">
         <button type="button" name="parseShortcuts" id="parseShortcuts"> Abkürzungen erstellen</button>
-            </div>
     </div>
-  </body>
+    <div data-lift="ScheduleParser.parseGroupsButton">
+        <button type="button" name="parseGroups" id="parseGroups"> Gruppeneinteilung erstellen</button>
+    </div>
+</div>
+</body>
 </html>
