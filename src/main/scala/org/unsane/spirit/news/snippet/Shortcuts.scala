@@ -1,6 +1,6 @@
 package org.unsane.spirit.news.snippet
 
-import org.unsane.spirit.news.model.{ScheduleRecord, Config}
+import org.unsane.spirit.news.model.{Config, ScheduleRecord}
 
 /**
  * class to render shortcut page
@@ -10,7 +10,7 @@ import org.unsane.spirit.news.model.{ScheduleRecord, Config}
  */
 class Shortcuts extends Config {
 
-  val allAppointments = ScheduleRecord.findAll.map(sr => (sr.titleShort.value, sr.titleLong.value)).toMap
+  val allAppointments = ScheduleRecord.findAll.filter(sr=> allClassNamesAsLowercase.contains(sr.className.get.toLowerCase) ).map(sr => (sr.titleShort.value, sr.titleLong.value)).toMap
 
 
   def render = {

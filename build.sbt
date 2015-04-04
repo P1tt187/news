@@ -4,7 +4,7 @@ import com.typesafe.sbt.SbtStartScript
 
 name := "SPIRIT-News"
 
-version := "1.3.14"
+version := "1.4.0"
 
 organization := "SPIRIT"
 
