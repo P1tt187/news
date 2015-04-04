@@ -1,6 +1,6 @@
 package org.unsane.spirit.news.snippet
 
-import net.liftweb.common.{Loggable, Full}
+import net.liftweb.common.{Full, Loggable}
 import net.liftweb.http.js.{JE, JsExp}
 import net.liftweb.http.{S, SHtml, SessionVar}
 import org.unsane.spirit.news.model.{Config, GroupRecord}
@@ -9,7 +9,7 @@ import org.unsane.spirit.news.model.{Config, GroupRecord}
  * @author fabian 
  * @since 29.03.15.
  */
-class GroupView extends Config with Loggable{
+class GroupView extends Config with Loggable {
 
   private object classNameVar extends SessionVar[String](S.param("classname").openOr(""))
 
@@ -40,12 +40,12 @@ class GroupView extends Config with Loggable{
 
   def render = {
     val groups = GroupRecord.findAll.filter(_.className.get.equals(classNameVar.get))
-    val groupTypes = groups.map(_.groupType.get).toSet
+    val groupTypesSet = groups.map(_.groupType.get).toSet
+    val groupTypes = groupTypesSet.toList.sortBy { gt => groups.count(g => g.groupType.get.equals(gt)) }
 
     val tables = groupTypes.map {
       gt =>
-        logger debug gt
-        val filteredGroups = groups.filter(  _.groupType.get.trim.equals(gt.trim)).sortBy(_.groupIndex.get)
+        val filteredGroups = groups.filter(_.groupType.get.trim.equals(gt.trim)).sortBy(_.groupIndex.get)
         val maxIndex = filteredGroups.map(_.students.get.size).max
 
         <table>
@@ -56,8 +56,9 @@ class GroupView extends Config with Loggable{
             <tr>
               {filteredGroups.map {
               fg =>
-                <th style="textalign:center">
-                  Gruppe {fg.groupIndex.get}
+                <th>
+                  Gruppe
+                  {fg.groupIndex.get}
                 </th>
             }}
             </tr>
@@ -66,14 +67,13 @@ class GroupView extends Config with Loggable{
             {for (studentIndex <- 0 to maxIndex - 1) yield {
             <tr>
               {filteredGroups.map { fg =>
-              <td>
+              <td class="textcenter">
                 {val students = fg.students.get
-                  students.lift(studentIndex) match{
-                    case Some(student)=>
-                      student.firstName + " " + student.lastName
-                    case None => ""
-                  }
-                }
+              students.lift(studentIndex) match {
+                case Some(student) =>
+                  student.firstName + " " + student.lastName
+                case None => ""
+              }}
               </td>
             }}
             </tr>

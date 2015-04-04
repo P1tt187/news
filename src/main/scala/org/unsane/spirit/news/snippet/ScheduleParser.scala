@@ -13,9 +13,10 @@ import net.liftweb.http.js.{JE, JsExp}
 import net.liftweb.util.BindHelpers._
 import org.ccil.cowan.tagsoup.jaxp.SAXFactoryImpl
 import org.unsane.spirit.news.lib.ScheduleParsingHelper
-import org.unsane.spirit.news.model.{student, GroupRecord, ScheduleRecord}
+import org.unsane.spirit.news.model.{GroupRecord, ScheduleRecord, student}
 import org.xml.sax.InputSource
 
+import scala.annotation.tailrec
 import scala.util._
 import scala.xml.parsing.NoBindingFactoryAdapter
 import scala.xml.{Node, NodeSeq}
@@ -84,66 +85,74 @@ class ScheduleParser extends Loggable {
 
     val pattern = Pattern.compile("^[bm]a*", Pattern.CASE_INSENSITIVE)
 
-    def doPrivate(elements: NodeSeq, groupTypeList: Seq[(String, String)] = Seq[(String, String)]()): Seq[(String, String)] = {
-      val element = elements.head
-      if (pattern.matcher(element.text).find()) {
-        val textLower = element.text.toLowerCase
-        val text = element.text
-        val theClass = sph.allClassNamesAsLowercase.filter(className => textLower.contains(className)).head
-        val groupType = text.substring(text.indexOf('(') + 1, text.indexOf(')') )
+    val buf = scala.collection.mutable.ListBuffer.empty[(String, String)]
 
-        val append = (theClass, groupType)
-
-        if (!groupTypeList.contains(append)) {
-          doPrivate(elements.tail, groupTypeList :+ append)
-        } else {
-          doPrivate(elements.tail, groupTypeList)
-        }
+    @tailrec
+    def doPrivate(elements: NodeSeq): List[(String, String)] = {
+      //logger debug elements
+      if (elements.isEmpty) {
+        buf.toList
       } else {
-        groupTypeList
-      }
+        val element = elements.head
 
+        if (pattern.matcher(element.text).find()) {
+
+          val textLower = element.text.toLowerCase
+          val text = element.text
+          val theClass = sph.allClassNamesAsLowercase.filter(className => textLower.contains(className)).head
+          val groupType = text.substring(text.indexOf('(') + 1, text.indexOf(')'))
+
+          val append = (theClass, groupType)
+
+          //if (!buf.contains(append)) {
+          buf += append
+          //}
+
+        }
+        doPrivate(elements.tail)
+
+      }
     }
 
     doPrivate(elements)
   }
 
   def doParseGroupsButton() = {
-    val theUrl = "http://my.fh-sm.de/~fbi-x/Stundenplan/gruppen.html"
+    val theUrl =  sph.loadProps("groupUrl")
     val parsedHtml = load(new URL(theUrl))
     val body = parsedHtml \ "body"
-
-    val groupTypes = createCourseGrouptypes(body \\ "p" \\ "a")
+    /** first: create a list of tuples with course and grouptype */
+    val groupTypes = createCourseGrouptypes(((body \\ "p") \ "font") \ "a")
+    /** second: collect all data from grouptyes */
     val studentStructure = (body \\ "table").map {
       t =>
         (t \\ "td").map {
           td =>
-            td.toString.replaceAll("<td valign=\"middle\" rowspan=\"1\" colspan=\"1\" align=\"left\">","").replaceAll("</td>","").replaceAll("<br clear=\"none\"/>",";").split(";").map {
+            td.toString.replaceAll("<td valign=\"middle\" rowspan=\"1\" colspan=\"1\" align=\"left\">", "").replaceAll("</td>", "").replaceAll("<br clear=\"none\"/>", ";").split(";").map {
               studentString =>
                 val split = studentString.split(",")
                 (split.lift(1).getOrElse("").trim, split(0).trim)
             }
         }
     }
-
-
     GroupRecord.findAll.foreach(_.delete_!)
 
-    for(groupIndex <- 0 to groupTypes.size-1){
+    /** third: combine all data and save it */
+    for (groupIndex <- 0 to groupTypes.size - 1) {
       val (theClass, groupType) = groupTypes(groupIndex)
 
-      var i=0
-      studentStructure(groupIndex).foreach{
-        groupList=>
-          i+=1
+      var i = 0
+      studentStructure(groupIndex).foreach {
+        groupList =>
+          i += 1
           val groupRecord = GroupRecord.createRecord
           groupRecord.className.set(theClass)
           groupRecord.groupType.set(groupType)
           groupRecord.groupIndex.set(i)
 
-          val studentList = groupList.map{
-            case (firstName,lastName)=>
-              student(firstName,lastName)
+          val studentList = groupList.map {
+            case (firstName, lastName) =>
+              student(firstName, lastName)
           }.toList
           groupRecord.students.set(studentList)
           groupRecord.save
