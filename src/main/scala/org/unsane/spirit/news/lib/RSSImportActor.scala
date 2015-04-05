@@ -10,13 +10,10 @@ import com.overzealous.remark.{Options, Remark}
 import dispatch.Defaults._
 import dispatch._
 import it.sauronsoftware.feed4j.FeedParser
-import net.liftweb.common.{Full, Loggable}
-import org.apache.commons.lang3.StringEscapeUtils
 import net.liftweb.common.Loggable
 import org.unsane.spirit.news.lib.RSSReader._
-import org.unsane.spirit.news.model.{User, Entry}
+import org.unsane.spirit.news.model.Entry
 import org.unsane.spirit.news.snippet.CRUDEntry
-import com.overzealous.remark.{Options, Remark}
 
 import scala.actors.Actor
 import scala.collection.mutable
@@ -99,8 +96,8 @@ class RSSImportActor extends Actor with Loggable {
         val user = item.getElementValue(DOM_URL, "contributor")
         val subject = item.getTitle
         //val news = item.getDescriptionAsHTML.replaceAll("mailto:", "") //.replaceAll("<br />", "\n").replaceAll("<li>", "* ").replaceAll("</li>", "\n")
-        val news = transformHtml2Markdown(correctNews(item.getDescriptionAsHTML).replaceAll("\\p{javaSpaceChar}", " ").trim)
-
+        //val news = transformHtml2Markdown(correctNews(item.getDescriptionAsHTML).replaceAll("\\p{javaSpaceChar}", " ").trim)
+        val news = transformHtml2Markdown(item.getDescriptionAsHTML).replaceAll("\\p{javaSpaceChar}", " ").trim
         val pubDateString = item.getElementValue("", "pubDate")
         val baseURL = item.getLink.toString
 
@@ -203,7 +200,7 @@ class RSSImportActor extends Actor with Loggable {
   }
 
   def extractCourses(subject: String): (String, List[(String, Int)]) = {
-    val searchStrings = coursesWithAlias.keySet.par.flatMap {
+    val searchStrings = (coursesWithAlias.keySet.par.flatMap {
       course =>
 
         coursesWithAlias(course).par.flatMap {
@@ -212,15 +209,22 @@ class RSSImportActor extends Actor with Loggable {
               number => alias + number
             }
         }
-    }.toList ++ coursesWithAlias.keySet // add course list to extract it from title
+    } ++ coursesWithAlias.keySet).toList.sortBy(c => (-c.length, c)) // add course list to extract it from title
 
     val result: String = subject.replaceAll("\\p{javaSpaceChar}[-]", "")
+    var tmpString = result.toLowerCase() // this is needed to find only once the relevant courses
 
     val coursesWithIndexes = searchStrings.map {
       search =>
+
         val pattern = Pattern.compile(search, Pattern.CASE_INSENSITIVE)
         val matcher = pattern.matcher(result)
-        val index = if (matcher.find()) {
+        val tmpMatcher = pattern.matcher(tmpString)
+        val index = if (matcher.find() && tmpMatcher.find()) { // only if the pattern is found in both strings it will be added to the result list
+          logger debug search
+          logger debug tmpString
+         tmpString = tmpString.replaceAll(search.toLowerCase,"")
+          logger debug tmpString
           matcher.start()
         }
         else {
@@ -258,13 +262,13 @@ class RSSImportActor extends Actor with Loggable {
 
     val changedSemester = new mutable.StringBuilder
 
-    val parts = subject.replaceAll("[():,.-]", " ").trim.toUpperCase.split(" ") ++ news.replaceAll("[():,.]", " ").trim.toUpperCase.split(" ")
+   // val parts = subject.replaceAll("[():,.-]", " ").trim.toUpperCase.split(" ") ++ news.replaceAll("[():,.]", " ").trim.toUpperCase.split(" ")
 
 
-    val theCourses = (parts.toSet.flatMap {
+    val theCourses =/* (parts.toSet.flatMap {
       p: String =>
-        allSemesterAsList4News.filter(sem => p.equalsIgnoreCase(sem) || p.equalsIgnoreCase("BA" + sem))
-    } ++ extractCourses(subject)._2.map(_._1)).toList.sorted
+        allSemesterAsList4News.filter(sem => p.equals(sem) || p.equals("BA" + sem))
+    } ++ */extractCourses(subject)._2.map(_._1).sorted
 
 
 
