@@ -33,20 +33,15 @@
 package org.unsane.spirit.news
 package rest
 
-import model._
-
-import net.liftweb.http.rest._
-
-import net.liftweb.json.JsonDSL._
-import net.liftweb.common.Box
-import net.liftweb.json.JArray
-import net.liftweb.common.Loggable
-
-
+import java.text.SimpleDateFormat
 import java.util.{Date, Locale}
 
-import java.text.SimpleDateFormat
+import net.liftweb.common.{Box, Loggable}
+import net.liftweb.http.rest._
+import net.liftweb.json.JArray
 import net.liftweb.json.JsonAST.JValue
+import net.liftweb.json.JsonDSL._
+import org.unsane.spirit.news.model._
 
 object Response extends Loggable with Config with RestHelper {
 
@@ -122,10 +117,10 @@ object Response extends Loggable with Config with RestHelper {
 
     if (params.isEmpty) {
       logger info "entry"
-      JArray(Entry.findAll.sortWith((entry1,entry2) => entry1.nr.value > entry2.nr.value ).map(_.asJValue))
+      JArray(Entry.findAll.sortWith((entry1,entry2) => entry1.nr.value.toInt > entry2.nr.value.toInt ).map(_.asJValue))
     }
     else {
-      var news = Entry.findAll.sortWith((entry1,entry2) => entry1.nr.value > entry2.nr.value )
+      var news = Entry.findAll.sortWith((entry1,entry2) => entry1.nr.value.toInt > entry2.nr.value.toInt )
 
       news = params.get("semester") match {
         case Some(x) => filterSemester(news, x.head)
