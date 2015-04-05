@@ -221,10 +221,7 @@ class RSSImportActor extends Actor with Loggable {
         val matcher = pattern.matcher(result)
         val tmpMatcher = pattern.matcher(tmpString)
         val index = if (matcher.find() && tmpMatcher.find()) { // only if the pattern is found in both strings it will be added to the result list
-          logger debug search
-          logger debug tmpString
          tmpString = tmpString.replaceAll(search.toLowerCase,"")
-          logger debug tmpString
           matcher.start()
         }
         else {
