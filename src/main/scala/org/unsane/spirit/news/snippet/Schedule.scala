@@ -22,7 +22,7 @@ class Schedule extends Config {
     case _ => S.redirectTo("/")
   }
 
-  private object weekTypeVar extends SessionVar[String]("")
+  private object weekTypeVar extends SessionVar[String](S.param("weektype").openOr(""))
 
   private object classNameVar extends SessionVar[String](S.param("classname").openOr(""))
 
