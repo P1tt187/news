@@ -51,6 +51,12 @@ class Schedule extends Config {
     case s => classNameVar.set(s)
   }
 
+  S.param("weektype").openOr("") match {
+    case "" =>
+    case s if(!List("w","g","u").contains(s)) => S.redirectTo("/404")
+    case s => weekTypeVar.set(s)
+  }
+
   classNameVar.get match {
     case s if (allClassNamesAsLowercase contains s) =>
     case "" =>
