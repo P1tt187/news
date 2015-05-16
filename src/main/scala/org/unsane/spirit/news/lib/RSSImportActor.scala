@@ -188,7 +188,8 @@ class RSSImportActor extends Actor with Loggable {
     val (_, firstIndex) = filterList.head
     val (lastCourse, lastIndex) = filterList.last
     val replaceString = result.substring(firstIndex, lastIndex + lastCourse.length)
-    result = result.replaceAll(replaceString, "").trim
+    result = result.replaceAll(replaceString, "").replaceAll("\\[\\]","").trim
+
     val suffixMatcher = Pattern.compile(suffix).matcher(result)
 
     if (suffixMatcher.find() && suffixMatcher.start() < 2) {
