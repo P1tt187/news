@@ -8,15 +8,15 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ * notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
  *
  * 3. Neither the name of the author nor the names of his contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * may be used to endorse or promote products derived from this software
+ * without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -35,19 +35,26 @@ package snippet
 
 
 import net.liftweb.common.{Full, Loggable}
-import net.liftweb.http.js.{JE, JsExp}
+import net.liftweb.http.js.JsCmds._
+import net.liftweb.http.js.{JE, JsCmd, JsExp}
 import net.liftweb.http.{S, SHtml}
 import net.liftweb.json.JsonDSL._
 import net.liftweb.markdown._
 import net.liftweb.util.Helpers._
-import org.unsane.spirit.news.model.{Config, Entry}
+import org.unsane.spirit.news.model.{Config, Entry, LoginUtil}
 
 import scala.xml._
 
 /**
  * @author Marcus Denison
  */
+object ViewNews {
+  /** variable is used to show if fsi office is in use */
+  private var fsiOfficeIsInUse = false
+}
+
 class ViewNews extends SpiritHelpers with Loggable with Config {
+
 
   /**
    * Pattern Matching if a search has begun.
@@ -59,23 +66,23 @@ class ViewNews extends SpiritHelpers with Loggable with Config {
       logger info ("Searching for " + s + "!")
       val validSearch =
         loadSemesters("BaI") :: loadSemesters("BaWI") ::
-        loadSemesters("BaITS") :: loadSemesters("BaMuMa") :: loadSemesters("BaMC") ::
-        loadSemesters("Ma") :: loadSemesters("Other") :: Nil
+          loadSemesters("BaITS") :: loadSemesters("BaMuMa") :: loadSemesters("BaMC") ::
+          loadSemesters("Ma") :: loadSemesters("Other") :: Nil
 
       if (validSearch.flatten.contains(s)) {
         Entry.findAll.filter { entry =>
           entry.contains(s) || entry.contains("semester")
         }.sortWith(
-          (entry1, entry2) => (entry1 > entry2)
-        )
+            (entry1, entry2) => (entry1 > entry2)
+          )
       } else {
-          Entry.find("nr" -> s) match {
-            case Full(x) => List(x)
-            case _ => Entry.findAll.sortWith(
-                        (entry1, entry2) => (entry1 > entry2)
-                      )
-          }
+        Entry.find("nr" -> s) match {
+          case Full(x) => List(x)
+          case _ => Entry.findAll.sortWith(
+            (entry1, entry2) => (entry1 > entry2)
+          )
         }
+      }
 
     case _ =>
       Entry.findAll.sortWith(
@@ -91,39 +98,81 @@ class ViewNews extends SpiritHelpers with Loggable with Config {
   def classNameChooser() = {
 
     val classNames =
-      "alle" :: allSemesterAsList4News zip  "Alle" :: allClassNamesAsLowercase
+      "alle" :: allSemesterAsList4News zip "Alle" :: allClassNamesAsLowercase
 
     val (name2, js) = SHtml.ajaxCall(JE.JsRaw("this.value"),
-                                     s => S.redirectTo("/semsearch/" + s)): (String, JsExp)
+      s => S.redirectTo("/semsearch/" + s)): (String, JsExp)
 
     SHtml.select(classNames.toSeq, Full(S.param("search").openOr("Alle")), x => x, "onchange" -> js.toJsCmd)
 
   }
 
   def render = {
-   ".entry" #> news.map( entry =>
-     ".writer"    #> entry.writer.value.toString &
-     ".subject"   #> <a href={"/entry/"+entry.nr.value.toString}>
-                     { mkXMLHeader( ActuariusApp(entry.subject.value.toString))}</a> &
-     ".nr"        #> entry.nr.value.toString &
-     ".lifecycle" #> entry.lifecycle.value.toString &
-     ".date"      #> Text(entry.date.value.replaceAll("[+]0100","").trim) &
-     ".semester"  #> sem2link(semesterChanger(entry.semester.value.toString).split(" ")) &
-     ".news"      #> mkXMLHeader(ActuariusApp(mkNewsText(entry)))
-     //".news"      #> TextileParser.toHtml(entry.news.value.toString)
-   )
+    fsiOfficePart
+
+    ".entry" #> news.map(entry =>
+      ".writer" #> entry.writer.value.toString &
+        ".subject" #> <a href={"/entry/" + entry.nr.value.toString}>
+          {mkXMLHeader(ActuariusApp(entry.subject.value.toString))}
+        </a> &
+        ".nr" #> entry.nr.value.toString &
+        ".lifecycle" #> entry.lifecycle.value.toString &
+        ".date" #> Text(entry.date.value.replaceAll("[+]0100", "").trim) &
+        ".semester" #> sem2link(semesterChanger(entry.semester.value.toString).split(" ")) &
+        ".news" #> mkXMLHeader(ActuariusApp(mkNewsText(entry)))
+      //".news"      #> TextileParser.toHtml(entry.news.value.toString)
+    )
 
   }
 
-def mkNewsText(entry:Entry) :String={
-  val newsText = new StringBuilder
-  newsText append entry.news.value
-  if(entry.baseUrl.toString().nonEmpty){
-    newsText append "\n\n[Quelle]("
-    newsText append entry.baseUrl
-    newsText append ")"
+  def fsiOfficePart = {
+    if (ViewNews.fsiOfficeIsInUse) {
+      S.notice("FSI-Büro besetzt")
+    } else {
+      S.error("FSI-Büro nicht besetzt")
+    }
   }
-  newsText.toString()
+
+  def displayIsInUseForm() = {
+    if (LoginUtil.isLogged) {
+      <div data-lift="ViewNews.toggleFsiOfficeEvent">
+        {if (ViewNews.fsiOfficeIsInUse) {
+        <input type="checkbox" name="toggleFsiOfficeIsInUse" id="toggleFsiOfficeIsInUse" checked="checked"></input>
+      } else {
+        <input type="checkbox" name="toggleFsiOfficeIsInUse" id="toggleFsiOfficeIsInUse"></input>
+      }}
+        FSI-Büro besetzt
+      </div>
+    } else {
+      <div></div>
+    }
+  }
+
+  def toggleFsiOffice: JsCmd = {
+    if (ViewNews.fsiOfficeIsInUse) {
+      ViewNews.fsiOfficeIsInUse = false
+    } else {
+      ViewNews.fsiOfficeIsInUse = true
+    }
+    fsiOfficePart
+
+    _Noop
+  }
+
+  def toggleFsiOfficeEvent = {
+    "name=toggleFsiOfficeIsInUse [onclick]" #> SHtml.ajaxInvoke(() => toggleFsiOffice)
+  }
+
+
+  def mkNewsText(entry: Entry): String = {
+    val newsText = new StringBuilder
+    newsText append entry.news.value
+    if (entry.baseUrl.toString().nonEmpty) {
+      newsText append "\n\n[Quelle]("
+      newsText append entry.baseUrl
+      newsText append ")"
+    }
+    newsText.toString()
   }
 
 }
