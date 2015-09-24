@@ -99,15 +99,17 @@ class ScheduleParser extends Loggable {
 
           val textLower = element.text.toLowerCase
           val text = element.text
-          val theClass = sph.allClassNamesAsLowercase.filter(className => textLower.contains(className)).head
-          val groupType = text.substring(text.indexOf('(') + 1, text.indexOf(')'))
+          val theClassList = sph.allClassNamesAsLowercase.filter(className => textLower.contains(className))
 
-          val append = (theClass, groupType)
+          if(theClassList.nonEmpty) {
+            val theClass = theClassList.head
+            val groupType = text.substring(text.indexOf('(') + 1, text.indexOf(')'))
 
-          //if (!buf.contains(append)) {
-          buf += append
-          //}
+            val append = (theClass, groupType)
 
+
+            buf += append
+          }
         }
         doPrivate(elements.tail)
 

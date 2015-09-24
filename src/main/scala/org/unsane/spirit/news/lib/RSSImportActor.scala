@@ -243,7 +243,7 @@ class RSSImportActor extends Actor with Loggable {
     CrudEntry.CrudEntry.date.set(date)
     CrudEntry.CrudEntry.name.set(user)
     val expireDate = Calendar.getInstance()
-    expireDate.add(Calendar.MONTH, 3)
+    expireDate.add(Calendar.MONTH, 1)
     CrudEntry.CrudEntry.lifecycle.set(lifecycleFormat.format(expireDate.getTime))
 
     val changedSemester: String = extractSemester(subject, news)

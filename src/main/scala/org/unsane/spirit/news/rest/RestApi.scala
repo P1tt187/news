@@ -33,6 +33,8 @@
 package org.unsane.spirit.news
 package rest
 
+import java.util.Calendar
+
 import dispatch.Defaults._
 import dispatch._
 import net.liftweb.common.{Full, Loggable}
@@ -50,6 +52,8 @@ import scala.concurrent.Await
 object RestApi extends RestHelper with Loggable with Config {
 
   logger info "Rest is now online."
+
+  private var lastUpdate = Calendar.getInstance()
 
   serve {
 
@@ -184,20 +188,27 @@ object RestApi extends RestHelper with Loggable with Config {
     case "sharrif" :: "facebook-like" :: Nil Get req => {
 
       import net.liftweb.json.JsonDSL._
+
       import scala.concurrent.duration._
 
       case class FacebookGraphResponse(likes: Int, id: String)
 
-      val fbPagename = loadProps("fbPagename", "fhs.spirit")
+      val currentTime = Calendar.getInstance()
+      if(lastUpdate.get(Calendar.HOUR)!=currentTime.get(Calendar.HOUR)){
+        S.clearFunctionMap
+      }
 
-      val param = Map("fields" -> "likes")
-      val request = url("https://graph.facebook.com/" + fbPagename) <<? param
+      S.oneShot{
+        val fbPagename = loadProps("fbPagename", "fhs.spirit")
 
-      val json = Await.result(Http(request OK as.String), Duration(10, SECONDS))
+        val param = Map("fields" -> "likes")
+        val request = url("https://graph.facebook.com/" + fbPagename) <<? param
 
-      val likeCount = JsonParser.parse(json).extract[FacebookGraphResponse]
-      JsonResponse("facebooklike" -> likeCount.likes, Nil, Nil, 200)
+        val json = Await.result(Http(request OK as.String), Duration(10, SECONDS))
 
+        val likeCount = JsonParser.parse(json).extract[FacebookGraphResponse]
+        JsonResponse("facebooklike" -> likeCount.likes, Nil, Nil, 200)
+      }
     }
 
   }
