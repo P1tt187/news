@@ -147,3 +147,7 @@ header,section,footer,aside,nav,article {
 	font-size:10pt;
 }
 
+.news img {
+    max-width: 100%;
+    max-height: 100%;
+}
