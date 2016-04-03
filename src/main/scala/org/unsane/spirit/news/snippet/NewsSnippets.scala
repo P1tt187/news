@@ -42,6 +42,11 @@ import org.unsane.spirit.news.model.BuildInfo
 object NewsSnippets {
 
   private def gc = Calendar.getInstance()
+  private def cloneGc( gc:Calendar ):Calendar = {
+    val copy = Calendar.getInstance()
+    copy.setTimeInMillis(gc.getTimeInMillis)
+    copy
+  }
 
   private def getGregorianTime() = gc.getTime
 
@@ -57,13 +62,13 @@ object NewsSnippets {
   def dayString() = simpleFormatDay.format(getGregorianTime)
 
   def weekStart() = {
-    val gcStart = gc
+    val gcStart = cloneGc(gc)
     gcStart.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
     simpleFormatDate.format(gcStart.getTime)
   }
 
   def weekEnd() = {
-    val gcEnd = gc
+    val gcEnd = cloneGc(gc)
     gcEnd.set(Calendar.DAY_OF_WEEK, Calendar.FRIDAY)
     simpleFormatDate.format(gcEnd.getTime)
   }
