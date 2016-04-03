@@ -4,7 +4,7 @@ import com.typesafe.sbt.SbtStartScript
 
 name := "SPIRIT-News"
 
-version := "1.4.5"
+version := "1.4.6"
 
 organization := "SPIRIT"
 
@@ -24,7 +24,7 @@ seq(SbtStartScript.startScriptForClassesSettings: _*)
 
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature","-language:implicitConversions","-language:postfixOps")
 
-javacOptions ++= Seq("-Djsse.enableSNIExtension=false")
+javacOptions ++= Seq("-Djsse.enableSNIExtension=false","-XX:+UseG1GC")
 
 libraryDependencies ++= {
   val liftVersion = "2.5"
@@ -43,7 +43,7 @@ libraryDependencies ++= {
     "net.liftweb" %% "lift-record" % liftVersion % "compile->default" withSources,
     "net.liftweb" %% "lift-json" % liftVersion % "compile->default" withSources,
     "org.ccil.cowan.tagsoup" % "tagsoup" % "1.2.1" withSources,
-  "junit" % "junit" % "4.5" % "test->default",
+    "junit" % "junit" % "4.5" % "test->default",
     "org.scala-tools.testing" %% "specs" % "1.6.9" % "test->default",
     "org.mockito" % "mockito-all" % "1.8.0" % "test",
     "org.mortbay.jetty" % "jetty" % "6.1.26" % "test->default",

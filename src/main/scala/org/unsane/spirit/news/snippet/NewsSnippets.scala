@@ -34,13 +34,14 @@ package org.unsane.spirit.news
 package snippet
 
 import java.text.SimpleDateFormat
+import java.util.{Calendar, Date, Locale}
+
 import net.liftweb.http.S
-import java.util.{GregorianCalendar, Date, Calendar, Locale}
 import org.unsane.spirit.news.model.BuildInfo
 
 object NewsSnippets {
 
-  private def gc = new GregorianCalendar()
+  private def gc = Calendar.getInstance()
 
   private def getGregorianTime() = gc.getTime
 
@@ -69,7 +70,7 @@ object NewsSnippets {
 
   def weekNr() = {
     try {
-      weekString.toInt
+      Calendar.getInstance().get(Calendar.WEEK_OF_YEAR)
     } catch {
       case _: Throwable => 0
     }

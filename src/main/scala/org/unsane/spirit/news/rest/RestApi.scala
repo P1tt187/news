@@ -194,20 +194,30 @@ object RestApi extends RestHelper with Loggable with Config {
       case class FacebookGraphResponse(likes: Int, id: String)
 
       val currentTime = Calendar.getInstance()
-      if(lastUpdate.get(Calendar.HOUR)!=currentTime.get(Calendar.HOUR)){
+      if (lastUpdate.get(Calendar.HOUR) != currentTime.get(Calendar.HOUR)) {
         S.clearFunctionMap
+        lastUpdate = currentTime
       }
 
-      S.oneShot{
+      S.oneShot {
         val fbPagename = loadProps("fbPagename", "fhs.spirit")
+        val accessToken = loadProps("fbaccessToken", "")
 
-        val param = Map("fields" -> "likes")
-        val request = url("https://graph.facebook.com/" + fbPagename) <<? param
+        val param = Map(
+          "fields" -> "likes",
+          "access_token" -> accessToken
+        )
+        val graphVersion = "v2.5"
+        if (accessToken.nonEmpty) {
+          val request = url("https://graph.facebook.com/" + graphVersion + "/likes/" + fbPagename) <<? param
 
-        val json = Await.result(Http(request OK as.String), Duration(10, SECONDS))
+          val json = Await.result(Http(request OK as.String), Duration(10, SECONDS))
 
-        val likeCount = JsonParser.parse(json).extract[FacebookGraphResponse]
-        JsonResponse("facebooklike" -> likeCount.likes, Nil, Nil, 200)
+          val likeCount = JsonParser.parse(json).extract[FacebookGraphResponse]
+          JsonResponse("facebooklike" -> likeCount.likes, Nil, Nil, 200)
+        } else {
+          JsonResponse("facebooklike" -> 200, Nil, Nil, 200)
+        }
       }
     }
 
