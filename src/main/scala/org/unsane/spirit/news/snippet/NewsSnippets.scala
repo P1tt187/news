@@ -70,7 +70,8 @@ object NewsSnippets {
 
   def weekNr() = {
     try {
-      Calendar.getInstance().get(Calendar.WEEK_OF_YEAR)
+      gc.get(Calendar.WEEK_OF_YEAR)
+      //Calendar.getInstance().get(Calendar.WEEK_OF_YEAR)
     } catch {
       case _: Throwable => 0
     }
