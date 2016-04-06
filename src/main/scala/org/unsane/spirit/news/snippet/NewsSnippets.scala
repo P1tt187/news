@@ -41,7 +41,11 @@ import org.unsane.spirit.news.model.BuildInfo
 
 object NewsSnippets {
 
-  private def gc = Calendar.getInstance()
+  private def gc = {
+  val c = Calendar.getInstance()
+    c.setMinimalDaysInFirstWeek(4)
+    c
+  }
   private def cloneGc( gc:Calendar ):Calendar = {
     val copy = Calendar.getInstance()
     copy.setTimeInMillis(gc.getTimeInMillis)
@@ -75,7 +79,7 @@ object NewsSnippets {
 
   def weekNr() = {
     try {
-      gc.get(Calendar.WEEK_OF_YEAR) -1
+      gc.get(Calendar.WEEK_OF_YEAR)
       //Calendar.getInstance().get(Calendar.WEEK_OF_YEAR)
     } catch {
       case _: Throwable => 0
